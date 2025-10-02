@@ -8,8 +8,10 @@ type UUID = ReturnType<typeof crypto.randomUUID>
 
 interface TaskProto {
   uuid: ReturnType<typeof crypto.randomUUID>;
+  //title: string; // TO-DO: implement this
   description: string;
-  deadline?: Date
+  deadline?: Date;
+  //priority: "low" | "medium" | "high" // TO-DO: implement this
 }
 
 class Task implements TaskProto{
@@ -73,8 +75,24 @@ const processTasks = (tasks: Omit<TaskProto, "uuid">[]) => {
       },
       {
         uuid: crypto.randomUUID(),
-        description: "Study javascript"
-      }
+        description: "Kiss wife"
+      },
+      {
+        uuid: crypto.randomUUID(),
+        description: "Pay the mechanic"
+      },
+      {
+        uuid: crypto.randomUUID(),
+        description: "Evolve as a human being"
+      },
+      {
+        uuid: crypto.randomUUID(),
+        description: "Fill in your finance spreadsheet"
+      },
+      {
+        uuid: crypto.randomUUID(),
+        description: "Reflect about life"
+      },
     ]
 
     processTasks(boilerPlateTasks);

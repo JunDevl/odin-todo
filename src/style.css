@@ -1,5 +1,17 @@
 :root {
-  --border-color: hsl(214, 7%, 80%);
+  --primary-hue: 214;
+
+  --white-1: hsl(var(--primary-hue), 7%, 97%);
+  --white-2: hsl(var(--primary-hue), 7%, 94%);
+  --white-3: hsl(var(--primary-hue), 7%, 91%);
+
+  --black-1: hsl(var(--primary-hue), 7%, 11%);
+  --black-2: hsl(var(--primary-hue), 7%, 14%);
+  --black-3: hsl(var(--primary-hue), 7%, 17%);
+
+  --border-light-color: hsl(var(--primary-hue), 7%, 74%);
+  --border-dark-color: hsl(var(--primary-hue), 7%, 50%);
+  
   --todo-width: calc(50% + 1rem);
 
   font-size: 20pt;
@@ -11,6 +23,10 @@ ul, ul li, p, h1, h2, h3, h4, svg, path {
   padding: 0;
 }
 
+input:focus {
+  outline: none;
+}
+
 svg {
   max-width: 100%;
   height: auto;
@@ -18,11 +34,36 @@ svg {
   display: block;
 }
 
+body[theme="light"] {
+  --search-hover: black;
+
+  --base-color-1: var(--white-1);
+  --base-color-2: var(--white-2);
+  --base-color-3: var(--white-3);
+
+  --base-border-color: var(--border-light-color);
+
+  color: var(--black-1);
+}
+
+body[theme="dark"] {
+  --search-hover: white;
+
+  --base-color-1: var(--black-3);
+  --base-color-2: var(--black-2);
+  --base-color-3: var(--black-1);
+
+  --base-border-color: var(--border-dark-color);
+
+  color: var(--white-3);
+}
+
 body {
   margin: auto;
   margin-top: 20dvh;
   text-align: center;
   width: var(--todo-width);
+  background-color: var(--base-color-3);
 }
 
 h1.title {
@@ -66,9 +107,13 @@ div.menu > div.buttons > div:not(div.edit) {
 div.search {
   display: flex;
   justify-content: space-between;
-  border: 1px var(--border-color) solid;
+  border: 1px var(--base-border-color) solid;
   padding: .1rem;
-  border-radius: 6px;
+  border-radius: 9px;
+}
+
+div.search:has(input:focus) {
+  border-color: var(--search-hover);
 }
 
 div.search > input {
@@ -76,6 +121,8 @@ div.search > input {
   border: none;
   padding: .2rem;
   font-size: .75rem;
+  background-color: inherit;
+  color: inherit;
 }
 
 div.search > *:not(input) {
@@ -93,15 +140,16 @@ div.todo {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  border: 1px var(--border-color) solid;
+  border: 1px var(--base-border-color) solid;
   margin: auto;
   border-radius: 1rem;
   overflow: hidden;
+  background-color: var(--base-color-2);
 }
 
 li:has(div.task) {
   display: flex;
-  border-bottom: 1px var(--border-color) solid;
+  border-bottom: 1px var(--base-border-color) solid;
   justify-content: center;
 }
 
