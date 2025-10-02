@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "es2015",
+    "noImplicitAny": true,
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "outDir": "./dist/",
+    "sourceMap": true,
+    "jsx": "react",
+    "allowJs": false,
+    "moduleResolution": "node",
+    "target": "es6",
+    "strict": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["**/*.spec.ts"]
+}
