@@ -16,11 +16,6 @@ button {
   transition: 150ms;
 }
 
-li:focus {
-  outline: 1px solid var(--focused-base-color);
-  background-color: var(--black-3);
-}
-
 input:focus {
   outline: var(--focused-base-color);
 }

@@ -8,25 +8,60 @@ type Prettify<T> = {
 
 type UUID = ReturnType<typeof crypto.randomUUID>
 
-interface TaskProto {
-  uuid: UUID;
-  //title: string; // TO-DO: implement this
-  description: string;
+type Priority = "low" | "medium" | "high";
+
+let defaultPriority: Priority = "medium";
+
+interface DutyPrototype {
+  readonly uuid: UUID;
+  title?: string; // TO-DO: implement this
+  description?: string;
+  priority?: "low" | "medium" | "high" // TO-DO: implement this
   deadline?: Date;
-  //priority: "low" | "medium" | "high" // TO-DO: implement this
 }
 
-class Task implements TaskProto{
-  uuid: UUID;
+class Task implements DutyPrototype{
+  title: string;
   description: string;
+  priority: Priority;
   deadline?: Date;
+  readonly uuid: UUID;
 
-  constructor(description: string, deadline?: Date, uuid?: UUID) {
-    this.uuid = uuid ? uuid : crypto.randomUUID();
-
-    this.description = description;
-
+  constructor(title?: string, 
+              description?: string, 
+              priority?: Priority, 
+              deadline?: Date, 
+              uuid?: UUID) 
+  {
+    this.title = title ? title : "";
+    this.description = description ? description : "";
+    this.priority = priority ? priority : defaultPriority;
     if (deadline) this.deadline = deadline;
+    this.uuid = uuid ? uuid : crypto.randomUUID();
+  }
+}
+
+class Project implements DutyPrototype{
+  title: string;
+  description: string;
+  priority: Priority;
+  tasks: Task[];
+  deadline?: Date;
+  readonly uuid: UUID;
+
+  constructor(tasks: Task[],
+              title?: string,  
+              description?: string, 
+              priority?: Priority, 
+              deadline?: Date, 
+              uuid?: UUID) 
+  {              
+    this.tasks = tasks;
+    this.title = title ? title : "";
+    this.description = description ? description : "";
+    this.priority = priority ? priority : defaultPriority;
+    if (deadline) this.deadline = deadline;
+    this.uuid = uuid ? uuid : crypto.randomUUID();
   }
 }
 
@@ -35,7 +70,6 @@ const writeTaskToDOM = (task: Task, targetTaskNode?: Node) => {
 
   const taskListElement = document.createElement("li");
   taskListElement.setAttribute("uuid", task.uuid);
-  taskListElement.tabIndex = 0;
 
   const taskContainer = document.createElement("div");
   taskContainer.setAttribute("class", "task");
@@ -44,7 +78,6 @@ const writeTaskToDOM = (task: Task, targetTaskNode?: Node) => {
   taskCheckbox.type = "checkbox";
   taskCheckbox.name = task.description;
   taskCheckbox.id = task.uuid;
-  taskCheckbox.tabIndex = -1;
 
   if (targetTaskNode) {
     const taskLabel = document.createElement("label");
@@ -73,9 +106,53 @@ const writeTaskToDOM = (task: Task, targetTaskNode?: Node) => {
   todo!.appendChild(taskListElement);
 }
 
-const processTasks = (tasks: Omit<TaskProto, "uuid">[]) => {
+const writeProjectToDOM = (project: Project, targetProjectNode?: Node) => {
+  const projects = document.querySelector<HTMLUListElement>("div.projects ul");
+
+  const projectListElement = document.createElement("li");
+  projectListElement.setAttribute("uuid", project.uuid);
+  projectListElement.tabIndex = 0;
+
+  const projectContainer = document.createElement("div");
+  projectContainer.setAttribute("class", "project");
+
+  const projectCheckbox = document.createElement("input");
+  projectCheckbox.type = "checkbox";
+  projectCheckbox.name = project.description;
+  projectCheckbox.id = project.uuid;
+  projectCheckbox.tabIndex = -1;
+
+  if (targetProjectNode) {
+    const projectLabel = document.createElement("label");
+    projectLabel.setAttribute("for", project.uuid);
+    projectLabel.textContent = "TEST";
+
+    projectContainer.appendChild(projectCheckbox);
+    projectContainer.appendChild(projectLabel);
+
+    projectListElement.appendChild(projectContainer);
+
+    projects!.insertBefore(projectListElement, targetProjectNode);
+
+    return;
+  }
+
+  const projectLabel = document.createElement("label");
+  projectLabel.setAttribute("for", project.uuid);
+  projectLabel.textContent = project.description;
+
+  projectContainer.appendChild(projectCheckbox);
+  projectContainer.appendChild(projectLabel);
+
+  projectListElement.appendChild(projectContainer);
+
+  projects!.appendChild(projectListElement);
+}
+
+const processTasks = (tasks: Omit<DutyPrototype, "uuid">[]) => {
   for (let task of tasks) {
-    const serializedTask = new Task(task.description, task.deadline);
+    const { title, description, priority, deadline } = task;
+    const serializedTask = new Task(title, description, priority, deadline);
 
     writeTaskToDOM(serializedTask);
   }
@@ -83,10 +160,10 @@ const processTasks = (tasks: Omit<TaskProto, "uuid">[]) => {
 
 (() => {
   if (!localStorage.getItem("tasks")) {
-    const boilerPlateTasks: TaskProto[] = [
+    const boilerPlateTasks: DutyPrototype[] = [
       {
         uuid: crypto.randomUUID(),
-        description: "Do the laundry"
+        title: "Do the laundry"
       },
       {
         uuid: crypto.randomUUID(),
@@ -121,7 +198,7 @@ const processTasks = (tasks: Omit<TaskProto, "uuid">[]) => {
     return;
   };
 
-  const tasks = JSON.parse(localStorage.getItem("tasks")!) as TaskProto[];
+  const tasks = JSON.parse(localStorage.getItem("tasks")!) as DutyPrototype[];
 
   processTasks(tasks);
 
@@ -134,5 +211,47 @@ const processTasks = (tasks: Omit<TaskProto, "uuid">[]) => {
       
       writeTaskToDOM(ava, todo?.firstChild!);
     })
+  })
+
+  type SelectionState = { 
+    origin: HTMLElement | null; 
+    selected: HTMLElement[]; 
+    current: HTMLElement | null 
+  }
+
+  const selectionState: SelectionState = {
+    origin: null,
+    selected: [],
+    current: null
+  }
+
+  document.querySelector("div.todo ul")?.addEventListener("click", (e) => {
+    const ev = e as MouseEvent;
+    const target = ev.target as HTMLElement;
+
+    if (!target.getAttribute("uuid")) return;
+
+    // TO-DO: implement selection logic
+
+    if (selectionState.current === target) {
+      selectionState.origin = target;
+      selectionState.selected.push(target);
+      selectionState.current = target;
+
+      target.classList.add("selected");
+      target.classList.add("current");
+      target.classList.add("origin");
+
+      return;
+    }
+
+    selectionState.origin = target;
+    selectionState.selected.push(target);
+    selectionState.current = target;
+
+    target.classList.add("selected");
+    target.classList.add("current");
+    target.classList.add("origin");
+
   })
 })()

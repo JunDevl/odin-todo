@@ -166,10 +166,15 @@ div.todo {
   background-color: var(--base-color-2);
 }
 
-li:has(div.task) {
+div.todo ul li {
   display: flex;
   border-bottom: 1px var(--base-border-color) solid;
   justify-content: center;
+}
+
+div.todo ul li.selected {
+  outline: 1px solid var(--focused-base-color);
+  background-color: var(--black-3);
 }
 
 div.task {
