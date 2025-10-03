@@ -11,31 +11,16 @@
 
   --border-light-color: hsl(var(--primary-hue), 7%, 74%);
   --border-dark-color: hsl(var(--primary-hue), 7%, 50%);
+
+  --accent-color: hsl(var(--primary-hue), 100%, 50%);
   
   --todo-width: calc(50% + 1rem);
 
   font-size: 20pt;
 }
 
-ul, ul li, p, h1, h2, h3, h4, svg, path {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-input:focus {
-  outline: none;
-}
-
-svg {
-  max-width: 100%;
-  height: auto;
-  /* Optional */
-  display: block;
-}
-
 body[theme="light"] {
-  --search-hover: black;
+  --focused-base-color: black;
 
   --base-color-1: var(--white-1);
   --base-color-2: var(--white-2);
@@ -47,7 +32,7 @@ body[theme="light"] {
 }
 
 body[theme="dark"] {
-  --search-hover: white;
+  --focused-base-color: white;
 
   --base-color-1: var(--black-3);
   --base-color-2: var(--black-2);
@@ -64,44 +49,77 @@ body {
   text-align: center;
   width: var(--todo-width);
   background-color: var(--base-color-3);
+  height: 150dvh;
+}
+
+svg {
+  max-width: 100%;
+  min-height: 1.5rem;
+  height: auto;
+  /* Optional */
+  display: block;
 }
 
 h1.title {
   font-size: 1.75rem;
-  margin-bottom: 2.25rem;
+  margin-bottom: 2rem;
 }
 
 div.menu {
+  position: sticky;
+  top: 0;
   display: flex;
   align-items: center;
   justify-content: space-evenly;
-  margin-bottom: .4rem;
+  gap: 2rem;
+  padding-top: 1rem; padding-bottom: 1rem;
+  padding-left: 4rem; padding-right: 4rem;
+  background-color: hsla(from var(--base-color-3) h s l / 60%);
+  margin-bottom: .1rem;
+  backdrop-filter: blur(10px);
 }
 
-div.menu > div.buttons {
-  flex: auto;
-  font-size: 1.25rem;
+button.add {
+  flex: 0;
+  font-size: 1rem;
   display: flex;
-  justify-content: space-evenly;
+  justify-content: center;
   align-items: stretch;
+  gap: .5rem;
+  background-color: var(--accent-color);
+  white-space: nowrap;
+  padding-top: .4rem; padding-bottom: .4rem; 
+  padding-left: 1rem; padding-right: 1rem; 
+  border-radius: 100dvh;
+  border: none;
+  color: inherit;
 }
 
-div.menu > div.buttons > div {
-  flex: auto;
-  padding: .2rem;
-  margin-top: auto;
-  margin-bottom: auto;
+button.add:hover {
+  color: var(--accent-color);
+  background-color: inherit;
+  box-shadow: 0px 0px 0px 2px var(--accent-color);
 }
 
-div.edit {
-  flex: none;
+button.add:active {
+  color: var(--white-1);
+  box-shadow: 0px 0px 0px 2px var(--focused-base-color);
+}
+
+span.plus {
+  font-size: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 1rem;
 }
 
-div.menu > div.buttons > div:not(div.edit) {
-  font-size: 1.8rem;
+span.text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  word-break: keep-all;
+  font-size: .9rem;
 }
 
 div.search {
@@ -110,14 +128,15 @@ div.search {
   border: 1px var(--base-border-color) solid;
   padding: .1rem;
   border-radius: 9px;
+  flex: 1 1 auto;
 }
 
 div.search:has(input:focus) {
-  border-color: var(--search-hover);
+  border-color: var(--focused-base-color);
 }
 
 div.search > input {
-  flex: 1;
+  flex: 1 1 auto;
   border: none;
   padding: .2rem;
   font-size: .75rem;

@@ -1,4 +1,6 @@
-import "./style.css";
+import "./default.css";
+import "./sidebar.css";
+import "./page.css";
 
 type Prettify<T> = {
   [k in keyof T]: T[k]
@@ -7,7 +9,7 @@ type Prettify<T> = {
 type UUID = ReturnType<typeof crypto.randomUUID>
 
 interface TaskProto {
-  uuid: ReturnType<typeof crypto.randomUUID>;
+  uuid: UUID;
   //title: string; // TO-DO: implement this
   description: string;
   deadline?: Date;
@@ -28,37 +30,54 @@ class Task implements TaskProto{
   }
 }
 
-const processTasks = (tasks: Omit<TaskProto, "uuid">[]) => {
-  const writeToDOM = (task: Task) => {
-    const todo = document.querySelector<HTMLUListElement>("div.todo ul");
+const writeTaskToDOM = (task: Task, targetTaskNode?: Node) => {
+  const todo = document.querySelector<HTMLUListElement>("div.todo ul");
 
-    const taskListElement = document.createElement("li");
-    taskListElement.setAttribute("uuid", task.uuid);
+  const taskListElement = document.createElement("li");
+  taskListElement.setAttribute("uuid", task.uuid);
+  taskListElement.tabIndex = 0;
 
-    const taskContainer = document.createElement("div");
-    taskContainer.setAttribute("class", "task");
+  const taskContainer = document.createElement("div");
+  taskContainer.setAttribute("class", "task");
 
-    const taskInput = document.createElement("input");
-    taskInput.type = "checkbox";
-    taskInput.name = task.description;
-    taskInput.id = task.uuid;
+  const taskCheckbox = document.createElement("input");
+  taskCheckbox.type = "checkbox";
+  taskCheckbox.name = task.description;
+  taskCheckbox.id = task.uuid;
+  taskCheckbox.tabIndex = -1;
 
+  if (targetTaskNode) {
     const taskLabel = document.createElement("label");
     taskLabel.setAttribute("for", task.uuid);
-    taskLabel.textContent = task.description;
+    taskLabel.textContent = "TEST";
 
-    taskContainer.appendChild(taskInput);
+    taskContainer.appendChild(taskCheckbox);
     taskContainer.appendChild(taskLabel);
 
     taskListElement.appendChild(taskContainer);
 
-    todo!.appendChild(taskListElement);
+    todo!.insertBefore(taskListElement, targetTaskNode);
+
+    return;
   }
 
+  const taskLabel = document.createElement("label");
+  taskLabel.setAttribute("for", task.uuid);
+  taskLabel.textContent = task.description;
+
+  taskContainer.appendChild(taskCheckbox);
+  taskContainer.appendChild(taskLabel);
+
+  taskListElement.appendChild(taskContainer);
+
+  todo!.appendChild(taskListElement);
+}
+
+const processTasks = (tasks: Omit<TaskProto, "uuid">[]) => {
   for (let task of tasks) {
     const serializedTask = new Task(task.description, task.deadline);
 
-    writeToDOM(serializedTask);
+    writeTaskToDOM(serializedTask);
   }
 }
 
@@ -105,4 +124,15 @@ const processTasks = (tasks: Omit<TaskProto, "uuid">[]) => {
   const tasks = JSON.parse(localStorage.getItem("tasks")!) as TaskProto[];
 
   processTasks(tasks);
+
+  document.querySelectorAll("button.add")?.forEach((buttonElement) => {
+    buttonElement.addEventListener("click", (e) => {
+      const target = e.target as HTMLButtonElement;
+      const todo = document.querySelector<HTMLUListElement>("div.todo ul");
+
+      const ava = new Task("asodfij");
+      
+      writeTaskToDOM(ava, todo?.firstChild!);
+    })
+  })
 })()

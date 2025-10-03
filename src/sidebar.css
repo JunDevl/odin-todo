@@ -1,0 +1,21 @@
+nav.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: stretch;
+  width: 16%;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+nav.sidebar ul {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1rem;
+}
