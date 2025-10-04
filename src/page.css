@@ -104,6 +104,7 @@ button.add:hover {
 button.add:active {
   color: var(--white-1);
   box-shadow: 0px 0px 0px 2px var(--focused-base-color);
+  transition-duration: 70ms;
 }
 
 span.plus {
