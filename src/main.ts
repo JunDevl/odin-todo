@@ -1,56 +1,26 @@
-import "./default.css"; import "./sidebar.css"; import "./page.css";
+import "./default.css"; 
+import "./sidebar.css"; 
+import "./page.css";
+
+import "./components/tasks/tasks.css";
+import "./components/projects/projects.css"; 
+import "./components/tracker/tracker.css"; 
+
+import boilerplate from "../resources/boilerplate.json";
+
+// I will eventually sin with the following import statements on this codebase, be aware.
+import writeTaskToDOM from "./components/tasks/index";
+import writeProjectToDOM from "./components/projects/index"
 
 import { Prettify, UUID, Priority, SelectionState, DutyType, DutyPrototype, Task, Project } from "./utils"
 
 const Global = (() => {
+
   const tasks: Map<UUID, Task> = new Map();
   const projects: Map<UUID, Project> = new Map();
 
   if (!localStorage.getItem("tasks")) {
-    const boilerPlateTasks: DutyPrototype[] = [
-      {
-        uuid: crypto.randomUUID(),
-        type: "task",
-        title: "Laundry",
-        description: "Do the laundry"
-      },
-      {
-        uuid: crypto.randomUUID(),
-        type: "task",
-        title: "Dishes",
-        description: "Do the dishes"
-      },
-      {
-        uuid: crypto.randomUUID(),
-        type: "task",
-        title: "Relationship Health",
-        description: "Kiss wife"
-      },
-      {
-        uuid: crypto.randomUUID(),
-        type: "task",
-        title: "Bill",
-        description: "Pay the mechanic"
-      },
-      {
-        uuid: crypto.randomUUID(),
-        type: "task",
-        title: "Git gud",
-        description: "Evolve as a human being"
-      },
-      {
-        uuid: crypto.randomUUID(),
-        type: "task",
-        title: "Control Finance",
-        description: "Fill in your finance spreadsheet"
-      },
-      {
-        uuid: crypto.randomUUID(),
-        type: "task",
-        title: "Devotional",
-        description: "Reflect about life"
-      },
-    ]
+    const boilerPlateTasks: DutyPrototype[] = boilerplate as DutyPrototype[]
 
     serializeDuty(boilerPlateTasks);
 
@@ -71,22 +41,30 @@ const Global = (() => {
   const addButtons = document.querySelectorAll("button.add");
   addButtons.forEach((buttonElement) => {
     buttonElement.addEventListener("click", (e) => {
-      const target = e.target as HTMLButtonElement;
-      const todo = document.querySelector<HTMLUListElement>("div.todo ul");
+      const test = new Task();
 
-      const ava = new Task("asodfij");
+      tasks.set(test.uuid, test);
       
-      writeToDOM(ava, todo?.firstChild!);
+      writeTaskToDOM(test, "insert");
     })
   })
 
-  const todo = document.querySelector("div.todo ul");
-  todo!.addEventListener("click", (e) => {
+  document.body.addEventListener("click", (e) => {
     const ev = e as MouseEvent;
     const target = e.target as HTMLElement
     const targetUUID = target.getAttribute("uuid") as UUID;
 
-    if (!targetUUID) return;
+    if (!targetUUID) {
+      const selectedElements = document.querySelectorAll("div.todo ul li")
+
+      selectedElements.forEach((el) => el.removeAttribute("class"));
+
+      selectionState.origin = null;
+      selectionState.selected.clear();
+
+
+      return;
+    };
 
     if (selectionState.origin !== targetUUID) {
       if (!ev.ctrlKey && !ev.shiftKey) {
@@ -97,7 +75,7 @@ const Global = (() => {
         selectionState.selected.clear();
 
         if (selectionState.origin) {
-          const previousOrigin = document.querySelector("div.todo ul li.origin")
+          const previousOrigin = document.querySelector("div.todo ul li.origin-selection")
           previousOrigin?.removeAttribute("class");
         }
 
@@ -105,7 +83,7 @@ const Global = (() => {
         selectionState.selected.add(targetUUID);
 
         target.classList.add("selected");
-        target.classList.add("origin");
+        target.classList.add("origin-selection");
 
         return;
       }
@@ -114,14 +92,14 @@ const Global = (() => {
         const previousOrigin = document.querySelector(`div.todo ul li[uuid="${selectionState.origin}"]`);
         
         if (previousOrigin?.classList.contains("selected")) {
-          previousOrigin?.classList.remove("origin");
+          previousOrigin?.classList.remove("origin-selection");
         } else {
           previousOrigin?.removeAttribute("class");
         }
           
 
         selectionState.origin = targetUUID
-        target.classList.add("origin");
+        target.classList.add("origin-selection");
 
         if (selectionState.selected.has(targetUUID)) {
           selectionState.selected.delete(targetUUID);
@@ -136,16 +114,6 @@ const Global = (() => {
         target.classList.add("selected");
 
         return;
-      }
-
-      if (!ev.ctrlKey && ev.shiftKey) {
-        const previousOrigin = document.querySelector("div.todo ul li.origin")
-
-        console.dir(previousOrigin)
-      }
-
-      if (ev.ctrlKey && ev.shiftKey) {
-
       }
     } 
     
@@ -179,14 +147,27 @@ const Global = (() => {
 
         return;
       }
-
-      if (!ev.ctrlKey && ev.shiftKey) return;
-
-      if (ev.ctrlKey && ev.shiftKey) {
-
-      }
     }
   })
+
+  const el = document.querySelector("div.menu") as HTMLElement;
+  const observer = new IntersectionObserver(
+    ([e]) => {
+      let isSticky = false
+
+      if (e.intersectionRect.top === e.rootBounds?.top) {
+        isSticky = true
+      }
+
+      el.dataset.currentlySticky = String(isSticky)
+    },
+    {
+      rootMargin: "-15px 0px 0px 0px",
+      threshold: [1],
+    },
+  )
+
+  observer.observe(el!);
 
   function insertDuty (duty: Task | Project) {
     switch(duty.type) {
@@ -212,14 +193,14 @@ const Global = (() => {
 
           insertDuty(serializedTask);
 
-          writeToDOM(serializedTask);
+          writeTaskToDOM(serializedTask, "append");
           break;
         case "project":
           const serializedProject = new Project(childTasksUuid!, title, description, priority, deadline, uuid);
 
           insertDuty(serializedProject);
 
-          writeToDOM(serializedProject);
+          writeProjectToDOM(serializedProject, "append");
           break;
       }
     }
@@ -227,52 +208,3 @@ const Global = (() => {
   
   return { insertDuty, getDuty, serializeDuty };
 })()
-
-function writeToDOM (duty: Task | Project, targetNode?: Node) {
-  switch(duty.type) {
-    case "task":
-      const todo = document.querySelector<HTMLUListElement>("div.todo ul");
-
-      const taskListElement = document.createElement("li");
-      taskListElement.setAttribute("uuid", duty.uuid);
-
-      const taskContainer = document.createElement("div");
-      taskContainer.setAttribute("class", "task");
-
-      const taskCheckbox = document.createElement("input");
-      taskCheckbox.type = "checkbox";
-      taskCheckbox.name = duty.description;
-      taskCheckbox.id = duty.uuid;
-
-      if (targetNode) {
-        const taskLabel = document.createElement("label");
-        taskLabel.setAttribute("for", duty.uuid);
-        taskLabel.textContent = "TEST";
-
-        taskContainer.appendChild(taskCheckbox);
-        taskContainer.appendChild(taskLabel);
-
-        taskListElement.appendChild(taskContainer);
-
-        todo!.insertBefore(taskListElement, targetNode);
-
-        return;
-      }
-
-      const taskLabel = document.createElement("label");
-      taskLabel.setAttribute("for", duty.uuid);
-      taskLabel.textContent = duty.description;
-
-      taskContainer.appendChild(taskCheckbox);
-      taskContainer.appendChild(taskLabel);
-
-      taskListElement.appendChild(taskContainer);
-
-      todo!.appendChild(taskListElement);
-      break;
-    
-    case "project":
-
-      break;
-  }
-}

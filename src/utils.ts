@@ -6,7 +6,7 @@ export type UUID = ReturnType<typeof crypto.randomUUID>
 
 export type Priority = "low" | "medium" | "high";
 
-export type DutyType = "task" | "project"
+export type DutyType = "task" | "project";
 
 let defaultPriority: Priority = "medium";
 
@@ -80,4 +80,74 @@ export class Project implements DutyPrototype {
 
     this.uuid = uuid ? uuid : crypto.randomUUID();
   }
+}
+
+type Operations = "insert" | "append"
+
+export function generateDOMWriteable<T extends Record<string, any>>(HTMLComponent: string) {
+  return (object: T, operation: Operations) => {
+    const sanitizeHTMLInput = (): string => {
+    let sanitized = HTMLComponent;
+
+    Object.entries(object).forEach((entry) => {
+      const [ key, value ] = entry;
+
+      const regexp = RegExp(`duty.${key}`, "g");
+
+      sanitized = sanitized.replace(regexp, value);
+    })
+
+    return sanitized;
+    }
+
+    const todo = document.querySelector<HTMLUListElement>("div.todo ul");
+
+    if (operation === "insert") {
+      todo!.innerHTML = `${sanitizeHTMLInput()}${todo?.innerHTML}` // i told you... (TO-DO: sanitize this shit properly)
+      return;
+    }
+
+    todo!.innerHTML += sanitizeHTMLInput(); 
+
+    /*#####   OLD APPROACH   #####*
+    const todo = document.querySelector<HTMLUListElement>("div.todo ul");
+
+    const taskListElement = document.createElement("li");
+    taskListElement.setAttribute("uuid", duty.uuid);
+
+    const taskContainer = document.createElement("div");
+    taskContainer.setAttribute("class", "task");
+
+    const taskCheckbox = document.createElement("input");
+    taskCheckbox.type = "checkbox";
+    taskCheckbox.name = duty.description;
+    taskCheckbox.id = duty.uuid;
+
+    if (targetNode) {
+      const taskLabel = document.createElement("label");
+      taskLabel.setAttribute("for", duty.uuid);
+      taskLabel.textContent = "TEST";
+
+      taskContainer.appendChild(taskCheckbox);
+      taskContainer.appendChild(taskLabel);
+
+      taskListElement.appendChild(taskContainer);
+
+      todo!.insertBefore(taskListElement, targetNode);
+
+      return;
+    }
+
+    const taskLabel = document.createElement("label");
+    taskLabel.setAttribute("for", duty.uuid);
+    taskLabel.textContent = duty.description;
+
+    taskContainer.appendChild(taskCheckbox);
+    taskContainer.appendChild(taskLabel);
+
+    taskListElement.appendChild(taskContainer);
+
+    todo!.appendChild(taskListElement);
+    *####      ####*/
+  };
 }

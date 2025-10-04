@@ -6,7 +6,8 @@ h2,
 h3,
 h4,
 svg,
-path {
+path,
+body {
   list-style: none;
   margin: 0;
   padding: 0;

@@ -10,6 +10,8 @@
     "allowJs": false,
     "moduleResolution": "node",
     "target": "es6",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     "strict": true
   },
   "include": ["src/**/*"],

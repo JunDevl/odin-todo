@@ -1,0 +1,44 @@
+[
+  {
+    "uuid": "75498230-8193-4259-a9d0-c5f86419c6d1",
+    "type": "task",
+    "title": "Laundry",
+    "description": "Do the laundry"
+  },
+  {
+    "uuid": "d7010060-8105-4b39-a930-08a5a2d6797e",
+    "type": "task",
+    "title": "Dishes",
+    "description": "Do the dishes"
+  },
+  {
+    "uuid": "da610330-8005-4a1b-946e-17fd2f446e10",
+    "type": "task",
+    "title": "Relationship Health",
+    "description": "Kiss wife"
+  },
+  {
+    "uuid": "1a7bc5ed-e31b-4977-808a-d750f7b70bbb",
+    "type": "task",
+    "title": "Bill",
+    "description": "Pay the mechanic"
+  },
+  {
+    "uuid": "6aa46a82-a3b9-4f24-9f79-faec854a4d34",
+    "type": "task",
+    "title": "Git gud",
+    "description": "Evolve as a human being"
+  },
+  {
+    "uuid": "b87a1c93-9e0e-45a7-98be-937844032991",
+    "type": "task",
+    "title": "Control Finance",
+    "description": "Fill in your finance spreadsheet"
+  },
+  {
+    "uuid": "f8861a07-4428-4c7f-9caf-c18dcfa782b2",
+    "type": "task",
+    "title": "Devotional",
+    "description": "Reflect about life"
+  }
+]

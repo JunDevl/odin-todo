@@ -1,18 +1,18 @@
 :root {
-  --primary-hue: 214;
+  --primary-hue: 260;
 
-  --white-1: hsl(var(--primary-hue), 7%, 97%);
-  --white-2: hsl(var(--primary-hue), 7%, 94%);
-  --white-3: hsl(var(--primary-hue), 7%, 91%);
+  --white-1: oklch(97% 0.005 var(--primary-hue));
+  --white-2: oklch(94% 0.005 var(--primary-hue));
+  --white-3: oklch(91% 0.005 var(--primary-hue));
 
-  --black-1: hsl(var(--primary-hue), 7%, 11%);
-  --black-2: hsl(var(--primary-hue), 7%, 14%);
-  --black-3: hsl(var(--primary-hue), 7%, 17%);
+  --black-1: oklch(22% 0.01 var(--primary-hue));
+  --black-2: oklch(25% 0.01 var(--primary-hue));
+  --black-3: oklch(30% 0.01 var(--primary-hue));
 
-  --border-light-color: hsl(var(--primary-hue), 7%, 74%);
-  --border-dark-color: hsl(var(--primary-hue), 7%, 50%);
+  --border-light-color: oklch(70% 0.01 var(--primary-hue));
+  --border-dark-color: oklch(60% 0.01 var(--primary-hue));
 
-  --accent-color: hsl(var(--primary-hue), 100%, 50%);
+  --accent-color: oklch(53% 0.25 var(--primary-hue));
   
   --todo-width: calc(50% + 1rem);
 
@@ -44,12 +44,18 @@ body[theme="dark"] {
 }
 
 body {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background-color: var(--base-color-3);
+  height: 150dvh;
+}
+
+main.content {
   margin: auto;
   margin-top: 20dvh;
   text-align: center;
   width: var(--todo-width);
-  background-color: var(--base-color-3);
-  height: 150dvh;
 }
 
 svg {
@@ -74,9 +80,13 @@ div.menu {
   gap: 2rem;
   padding-top: 1rem; padding-bottom: 1rem;
   padding-left: 4rem; padding-right: 4rem;
-  background-color: hsla(from var(--base-color-3) h s l / 60%);
+  background-color: oklch(from var(--base-color-3) l c h / 60%);
   margin-bottom: .1rem;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(6px);
+}
+
+div.menu[data-currently-sticky="true"] {
+  border-bottom: 1px solid var(--accent-color);
 }
 
 button.add {
@@ -92,7 +102,7 @@ button.add {
   padding-left: 1rem; padding-right: 1rem; 
   border-radius: 100dvh;
   border: none;
-  color: inherit;
+  color: var(--white-3);
 }
 
 button.add:hover {
@@ -102,7 +112,7 @@ button.add:hover {
 }
 
 button.add:active {
-  color: var(--white-1);
+  color: var(--focused-base-color);
   box-shadow: 0px 0px 0px 2px var(--focused-base-color);
   transition-duration: 70ms;
 }
@@ -130,6 +140,7 @@ div.search {
   padding: .1rem;
   border-radius: 9px;
   flex: 1 1 auto;
+  background-color: var(--base-color-2);
 }
 
 div.search:has(input:focus) {
@@ -154,33 +165,4 @@ div.search > *:not(input) {
   margin-bottom: auto;
   line-height: auto;
   font-size: .75rem;
-}
-
-div.todo {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  border: 1px var(--base-border-color) solid;
-  margin: auto;
-  border-radius: 1rem;
-  overflow: hidden;
-  background-color: var(--base-color-2);
-}
-
-div.todo ul li {
-  display: flex;
-  border-bottom: 1px var(--base-border-color) solid;
-  justify-content: center;
-}
-
-div.todo ul li.selected {
-  outline: 1px solid var(--focused-base-color);
-  background-color: var(--black-3);
-}
-
-div.task {
-  padding: 2rem;
-  gap: 1rem;
-  margin: auto;
-  display: flex;
 }
