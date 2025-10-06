@@ -90,8 +90,12 @@ export class Project implements DutyPrototype {
 
 type Operations = "insert" | "append"
 
-export function generateDOMWriteable<T extends Task | Project>(HTMLComponent: string, targetParent: HTMLElement) {
+export function generateDOMWriteable<T extends Task | Project>(HTMLComponent: string) {
   return (object: T, operation: Operations) => {
+    const targetParent = object.type === "task" ? 
+      document.querySelector<HTMLDivElement>("div#todo ul.container") :
+      document.querySelector<HTMLDivElement>("div#projects ul.container")
+
     const sanitizeHTML = (): string => {
       let sanitized = HTMLComponent;
 
@@ -116,11 +120,11 @@ export function generateDOMWriteable<T extends Task | Project>(HTMLComponent: st
     }
 
     if (operation === "insert") {
-      targetParent.innerHTML = `${sanitizeHTML()}${targetParent.innerHTML}`
+      targetParent!.innerHTML = `${sanitizeHTML()}${targetParent!.innerHTML}`
       return;
     }
 
-    targetParent.innerHTML += sanitizeHTML(); 
+    targetParent!.innerHTML += sanitizeHTML(); 
 
     /*#####   OLD APPROACH   #####*
     const todo = document.querySelector<HTMLUListElement>("div.todo ul");

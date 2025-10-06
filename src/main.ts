@@ -94,55 +94,51 @@ const Global = (() => {
   }
 
   function switchPage(page: Page) {
-    const content = document.querySelector<HTMLDivElement>("main.content");
+    const previousContent = document.querySelector<HTMLDivElement>("main.content");
+    document.body.removeChild(previousContent!);
 
-    content!.replaceWith(content!.cloneNode(true)); // removes eventlisteners;
     if (observer) observer.disconnect();
     
     selectionState.origin = null;
     selectionState.selected.clear();
 
-    const paintedElements = async (...HTMLElements: any[]): Promise<HTMLElement[]> => {
-      const awaitedElements = await new Promise((resolve) => {
-        if (!HTMLElements.includes(null)) resolve(HTMLElements)
-      });
-      return awaitedElements as any;
-    }
+    const newContent = document.createElement("main");
+    newContent.setAttribute("class", "content");
+    document.body.appendChild(newContent);
 
     switch(page) {
       case Page.Tasks:
-        content!.innerHTML = TodoComponent;
+        newContent.innerHTML = TodoComponent;
+        
+        const addTaskButton = document.querySelector("button.add");
 
-        paintedElements(document.querySelector("button.add"), document.querySelector("div.menu")).then((elements) => {
-          const addTasksButton = elements[0] as HTMLButtonElement;
-          const toolMenu = elements[1] as HTMLDivElement;
-          
-          addTasksButton.addEventListener("click", (e) => handleInsertion(e, "task", () => writeTaskToDOM));
-          observer = generateObserver(toolMenu);
-        });
+        addTaskButton!.addEventListener("click", (e) => handleInsertion(e, "task", () => writeTaskToDOM));
+        observer = generateObserver(document.querySelector("div.menu") as HTMLElement);
+
+        tasks.forEach((task) => { writeTaskToDOM(task, "append"); })
 
         break;
       
       case Page.Projects:
-        content!.innerHTML = ProjectsComponent;
+        newContent.setAttribute("class", "content");
+        newContent.innerHTML = ProjectsComponent;
 
-        paintedElements(document.querySelector("button.add"), document.querySelector("div.menu")).then((elements) => {
-          const addTasksButton = elements[0] as HTMLButtonElement;
-          const toolMenu = elements[1] as HTMLDivElement;
-          
-          addTasksButton.addEventListener("click", (e) => handleInsertion(e, "project", () => writeTaskToDOM));
-          observer = generateObserver(toolMenu);
-        });
+        const addProjectButton = document.querySelector("button.add");
+
+        addProjectButton!.addEventListener("click", (e) => handleInsertion(e, "task", () => writeProjectToDOM));
+        observer = generateObserver(document.querySelector("div.menu") as HTMLElement);
+
+        projects.forEach((project) => { writeProjectToDOM(project, "append"); })
 
         break;
       
       case Page.Tracker:
-        content!.innerHTML = TrackerComponent;
+        newContent.innerHTML = TrackerComponent;
 
         break;
       
       case Page.Configurations:
-        content!.innerHTML = ConfigComponent;
+        newContent.innerHTML = ConfigComponent;
 
         break;
     }
@@ -153,7 +149,7 @@ const Global = (() => {
       case "task": tasks.set(duty.uuid, duty); break;
       case "project": projects.set(duty.uuid, duty); break;
     }
-  }// I will eventually sin with the following import statements on this codebase, be aware.
+  }
 
   function getDuty (uuid: UUID, type: DutyType) {
     switch(type) {

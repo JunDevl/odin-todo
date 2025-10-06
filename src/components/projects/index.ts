@@ -4,8 +4,6 @@ import { Project } from "../../utils";
 import ProjectComponent from "./projects.html";
 import { generateDOMWriteable } from "../../utils";
 
-const projects = document.querySelector<HTMLDivElement>("div#projects ul.container");
-
-const writeProjectToDOM = generateDOMWriteable<Project>(ProjectComponent, projects!);
+const writeProjectToDOM = generateDOMWriteable<Project>(ProjectComponent);
 
 export default writeProjectToDOM;
