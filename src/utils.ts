@@ -8,6 +8,13 @@ export type Priority = "low" | "medium" | "high";
 
 export type DutyType = "task" | "project";
 
+export enum Page {
+  Tasks,
+  Projects,
+  Tracker,
+  Configurations
+};
+
 let defaultPriority: Priority = "medium";
 
 export type SelectionState = { 
@@ -24,7 +31,6 @@ export interface DutyPrototype {
   deadline?: Date;
 
   parentProjectUuid?: UUID; // Exclusively implemented by Tasks class
-
   childTasksUuid?: UUID[]; // Excluively implemented by Projects class
 }
 
@@ -84,30 +90,37 @@ export class Project implements DutyPrototype {
 
 type Operations = "insert" | "append"
 
-export function generateDOMWriteable<T extends Record<string, any>>(HTMLComponent: string) {
+export function generateDOMWriteable<T extends Task | Project>(HTMLComponent: string, targetParent: HTMLElement) {
   return (object: T, operation: Operations) => {
-    const sanitizeHTMLInput = (): string => {
-    let sanitized = HTMLComponent;
+    const sanitizeHTML = (): string => {
+      let sanitized = HTMLComponent;
 
-    Object.entries(object).forEach((entry) => {
-      const [ key, value ] = entry;
+      Object.entries(object).forEach((entry: [string, any]) => {
+        let [ key, value ] = entry;
 
-      const regexp = RegExp(`duty.${key}`, "g");
+        const HTMLLikeSyntax = /<|>/g
 
-      sanitized = sanitized.replace(regexp, value);
-    })
+        const replaceWith: Record<string, string> = { 
+          "<": "&lt;",
+          ">": "&gt;"
+        };
 
-    return sanitized;
+        value = value.replace(HTMLLikeSyntax, (match: string) => { return replaceWith[match] });
+
+        const propertyAccessOperation = RegExp(`{obj.${key}}`, "g");
+
+        sanitized = sanitized.replace(propertyAccessOperation, value);
+      })
+
+      return sanitized;
     }
 
-    const todo = document.querySelector<HTMLUListElement>("div.todo ul");
-
     if (operation === "insert") {
-      todo!.innerHTML = `${sanitizeHTMLInput()}${todo?.innerHTML}` // i told you... (TO-DO: sanitize this shit properly)
+      targetParent.innerHTML = `${sanitizeHTML()}${targetParent.innerHTML}`
       return;
     }
 
-    todo!.innerHTML += sanitizeHTMLInput(); 
+    targetParent.innerHTML += sanitizeHTML(); 
 
     /*#####   OLD APPROACH   #####*
     const todo = document.querySelector<HTMLUListElement>("div.todo ul");

@@ -6,175 +6,154 @@ import "./components/tasks/tasks.css";
 import "./components/projects/projects.css"; 
 import "./components/tracker/tracker.css"; 
 
-import boilerplate from "../resources/boilerplate.json";
+import boilerplateTasks from "../resources/boilerplate-tasks.json";
+import boilerplateProjects from "../resources/boilerplate-projects.json";
 
-// I will eventually sin with the following import statements on this codebase, be aware.
+import TodoComponent from "./components/home-pages/tasks-page.html";
+import ProjectsComponent from "./components/home-pages/projects-page.html";
+import TrackerComponent from "./components/home-pages/tracker-page.html";
+import ConfigComponent from "./components/home-pages/tracker-page.html";
+
 import writeTaskToDOM from "./components/tasks/index";
 import writeProjectToDOM from "./components/projects/index"
 
-import { Prettify, UUID, Priority, SelectionState, DutyType, DutyPrototype, Task, Project } from "./utils"
+import { Prettify, UUID, Priority, Page, SelectionState, DutyType, DutyPrototype, Task, Project } from "./utils"
+import { handleInsertion, handleItemSelection } from "./event-handlers";
 
 const Global = (() => {
-
   const tasks: Map<UUID, Task> = new Map();
   const projects: Map<UUID, Project> = new Map();
 
-  if (!localStorage.getItem("tasks")) {
-    const boilerPlateTasks: DutyPrototype[] = boilerplate as DutyPrototype[]
-
-    serializeDuty(boilerPlateTasks);
-
-    localStorage.setItem("tasks", JSON.stringify(boilerPlateTasks));
-
-    return;
-  };
-
-  const cachedTasks = JSON.parse(localStorage.getItem("tasks")!) as DutyPrototype[];
-
-  serializeDuty(cachedTasks);
+  let currentPage: Page = Page.Tasks;
 
   const selectionState: SelectionState = {
-    origin: null,
-    selected: new Set(),
+      origin: null,
+      selected: new Set(),
   }
 
-  const addButtons = document.querySelectorAll("button.add");
-  addButtons.forEach((buttonElement) => {
-    buttonElement.addEventListener("click", (e) => {
-      const test = new Task();
+  document.body.addEventListener("click", (e) => handleItemSelection(e, "task", selectionState));
 
-      tasks.set(test.uuid, test);
-      
-      writeTaskToDOM(test, "insert");
-    })
+  const sideOptions = document.querySelectorAll("nav.sidebar ul li");
+  sideOptions.forEach((element) => {
+    element.addEventListener("click", (e) => {
+      const target = e.target as HTMLElement;
+
+      switch(target.textContent) {
+        case "Tasks":
+          switchPage(Page.Tasks);
+          break;
+        case "Projects":
+          switchPage(Page.Projects);
+          break;
+        case "Tracker":
+          switchPage(Page.Tracker);
+          break;
+        case "Configurations":
+          switchPage(Page.Configurations);
+          break;
+      }
+    });
   })
 
-  document.body.addEventListener("click", (e) => {
-    const ev = e as MouseEvent;
-    const target = e.target as HTMLElement
-    const targetUUID = target.getAttribute("uuid") as UUID;
+  let observer: IntersectionObserver | null = null;
 
-    if (!targetUUID) {
-      const selectedElements = document.querySelectorAll("div.todo ul li")
+  switchPage(Page.Tasks);
 
-      selectedElements.forEach((el) => el.removeAttribute("class"));
+  if (!localStorage.getItem("tasks")) {
+    const tasks: DutyPrototype[] = boilerplateTasks as DutyPrototype[];
+    serializeDuty(tasks);
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  } 
+  else { serializeDuty(JSON.parse(localStorage.getItem("tasks")!) as DutyPrototype[]); };
 
-      selectionState.origin = null;
-      selectionState.selected.clear();
+  if (!localStorage.getItem("projects")) {
+    const projects: DutyPrototype[] = boilerplateProjects as DutyPrototype[];
+    localStorage.setItem("projects", JSON.stringify(projects));
+  }
+  else { serializeDuty(JSON.parse(localStorage.getItem("projects")!) as DutyPrototype[]); }
 
+  function generateObserver(observedElement: HTMLElement) {
+    const observer = new IntersectionObserver(
+      ([e]) => {
+        let isSticky = false
 
-      return;
-    };
-
-    if (selectionState.origin !== targetUUID) {
-      if (!ev.ctrlKey && !ev.shiftKey) {
-        selectionState.selected.forEach((uuid) => {
-          const previousSelected = document.querySelector(`div.todo ul li[uuid="${uuid}"]`);
-          previousSelected?.removeAttribute("class");
-        })
-        selectionState.selected.clear();
-
-        if (selectionState.origin) {
-          const previousOrigin = document.querySelector("div.todo ul li.origin-selection")
-          previousOrigin?.removeAttribute("class");
+        if (e.intersectionRect.top === e.rootBounds?.top) {
+          isSticky = true
         }
 
-        selectionState.origin = targetUUID,
-        selectionState.selected.add(targetUUID);
+        observedElement.dataset.currentlySticky = String(isSticky);
+      },
+      {
+        rootMargin: "-15px 0px 0px 0px",
+        threshold: [1],
+      },
+    )
 
-        target.classList.add("selected");
-        target.classList.add("origin-selection");
+    observer.observe(observedElement);
+    return observer;
+  }
 
-        return;
-      }
+  function switchPage(page: Page) {
+    const content = document.querySelector<HTMLDivElement>("main.content");
 
-      if (ev.ctrlKey && !ev.shiftKey) {
-        const previousOrigin = document.querySelector(`div.todo ul li[uuid="${selectionState.origin}"]`);
-        
-        if (previousOrigin?.classList.contains("selected")) {
-          previousOrigin?.classList.remove("origin-selection");
-        } else {
-          previousOrigin?.removeAttribute("class");
-        }
-          
-
-        selectionState.origin = targetUUID
-        target.classList.add("origin-selection");
-
-        if (selectionState.selected.has(targetUUID)) {
-          selectionState.selected.delete(targetUUID);
-
-          target.classList.remove("selected");
-
-          return;
-        }
-
-        selectionState.selected.add(targetUUID);
-
-        target.classList.add("selected");
-
-        return;
-      }
-    } 
+    content!.replaceWith(content!.cloneNode(true)); // removes eventlisteners;
+    if (observer) observer.disconnect();
     
-    if (selectionState.origin === targetUUID) {
-      if (!ev.ctrlKey && !ev.shiftKey) {
-        if (selectionState.selected.size !== 0) {
-          selectionState.selected.forEach((uuid) => {
-            const previousSelected = document.querySelector(`div.todo ul li[uuid="${uuid}"]`);
-            if (uuid !== targetUUID) previousSelected?.removeAttribute("class");
-          })
-          selectionState.selected.clear();
-        }
+    selectionState.origin = null;
+    selectionState.selected.clear();
 
-        target.classList.toggle("selected");
-
-        return;
-      }
-
-      if (ev.ctrlKey && !ev.shiftKey) {
-        if (selectionState.selected.has(targetUUID)) {
-          selectionState.selected.delete(targetUUID);
-
-          target.classList.remove("selected");
-
-          return;
-        }
-
-        selectionState.selected.add(targetUUID);
-
-        target.classList.add("selected");
-
-        return;
-      }
+    const paintedElements = async (...HTMLElements: any[]): Promise<HTMLElement[]> => {
+      const awaitedElements = await new Promise((resolve) => {
+        if (!HTMLElements.includes(null)) resolve(HTMLElements)
+      });
+      return awaitedElements as any;
     }
-  })
 
-  const el = document.querySelector("div.menu") as HTMLElement;
-  const observer = new IntersectionObserver(
-    ([e]) => {
-      let isSticky = false
+    switch(page) {
+      case Page.Tasks:
+        content!.innerHTML = TodoComponent;
 
-      if (e.intersectionRect.top === e.rootBounds?.top) {
-        isSticky = true
-      }
+        paintedElements(document.querySelector("button.add"), document.querySelector("div.menu")).then((elements) => {
+          const addTasksButton = elements[0] as HTMLButtonElement;
+          const toolMenu = elements[1] as HTMLDivElement;
+          
+          addTasksButton.addEventListener("click", (e) => handleInsertion(e, "task", () => writeTaskToDOM));
+          observer = generateObserver(toolMenu);
+        });
 
-      el.dataset.currentlySticky = String(isSticky)
-    },
-    {
-      rootMargin: "-15px 0px 0px 0px",
-      threshold: [1],
-    },
-  )
+        break;
+      
+      case Page.Projects:
+        content!.innerHTML = ProjectsComponent;
 
-  observer.observe(el!);
+        paintedElements(document.querySelector("button.add"), document.querySelector("div.menu")).then((elements) => {
+          const addTasksButton = elements[0] as HTMLButtonElement;
+          const toolMenu = elements[1] as HTMLDivElement;
+          
+          addTasksButton.addEventListener("click", (e) => handleInsertion(e, "project", () => writeTaskToDOM));
+          observer = generateObserver(toolMenu);
+        });
+
+        break;
+      
+      case Page.Tracker:
+        content!.innerHTML = TrackerComponent;
+
+        break;
+      
+      case Page.Configurations:
+        content!.innerHTML = ConfigComponent;
+
+        break;
+    }
+  }
 
   function insertDuty (duty: Task | Project) {
     switch(duty.type) {
       case "task": tasks.set(duty.uuid, duty); break;
       case "project": projects.set(duty.uuid, duty); break;
     }
-  }
+  }// I will eventually sin with the following import statements on this codebase, be aware.
 
   function getDuty (uuid: UUID, type: DutyType) {
     switch(type) {

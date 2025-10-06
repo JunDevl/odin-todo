@@ -1,4 +1,4 @@
-div.todo {
+div#todo {
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -9,17 +9,17 @@ div.todo {
   background-color: var(--base-color-2);
 }
 
-div.todo ul li {
+div#todo ul.container li {
   display: flex;
   border-bottom: 1px var(--base-border-color) solid;
   justify-content: center;
 }
 
-div.todo ul li.selected {
+div#todo ul.container li.selected {
   background-color: var(--base-color-1);
 }
 
-div.todo ul li.origin-selection {
+div#todo ul.container li.origin-selection {
   --border-color: oklch(from var(--accent-color) l calc(c - 0.15) h);
 
   border-color: var(--border-color);

@@ -1,4 +1,4 @@
 //import "./tracker.css"
 
-import ProjectComponent from "./tracker.html";
+import TrackerComponent from "./tracker.html";
 

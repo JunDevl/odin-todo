@@ -1,0 +1,20 @@
+[
+  {
+    "uuid": "75498230-8193-4259-a9d0-c5f86419c6d1",
+    "type": "project",
+    "title": "CS College",
+    "description": "Here is where i put everything that i have to do to finish college and get a Computer's Science degree."
+  },
+  {
+    "uuid": "d7010060-8105-4b39-a930-08a5a2d6797e",
+    "type": "project",
+    "title": "Snake Game",
+    "description": "A spare project to practice my skills in C#."
+  },
+  {
+    "uuid": "da610330-8005-4a1b-946e-17fd2f446e10",
+    "type": "project",
+    "title": "Art Course",
+    "description": ""
+  }
+]
