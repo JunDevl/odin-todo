@@ -22,6 +22,7 @@
     "type": "project",
     "title": "Self improvement",
     "description": "I only got to live one life, might as well not throw it into the trash",
-    "childTasksUuid": ["f8861a07-4428-4c7f-9caf-c18dcfa782b2", "6aa46a82-a3b9-4f24-9f79-faec854a4d34"]
+    "childTasksUuid": ["f8861a07-4428-4c7f-9caf-c18dcfa782b2", "6aa46a82-a3b9-4f24-9f79-faec854a4d34"],
+    "completed": 1
   }
 ]

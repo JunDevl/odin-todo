@@ -27,7 +27,7 @@ export type SelectionState = {
 export interface DutyPrototype {
 	readonly type: DutyType;
 	readonly uuid: UUID;
-  readonly completed: boolean | number;
+  completed: boolean | number;
 	title?: string; // TO-DO: implement this
 	description?: string;
 	priority?: Priority; // TO-DO: implement this
@@ -39,7 +39,7 @@ export interface DutyPrototype {
 
 export class Task implements DutyPrototype {
 	readonly type = "task";
-  readonly completed: boolean;
+  completed: boolean;
 	title: string;
 	description: string;
 	priority: Priority;
@@ -70,7 +70,7 @@ export class Task implements DutyPrototype {
 
 export class Project implements DutyPrototype {
 	readonly type = "project";
-  readonly completed: number;
+  completed: number;
 	title: string;
 	description: string;
 	priority: Priority;
@@ -84,28 +84,19 @@ export class Project implements DutyPrototype {
 		description?: string,
 		priority?: Priority,
 		deadline?: Date,
+		completed?: number,
 		uuid?: UUID,
 	) {
 		this.childTasksUuid = childTasksUuid ? childTasksUuid : [];
 		this.title = title ? title : "";
 		this.description = description ? description : "";
 		this.priority = priority ? priority : defaultPriority;
+    this.completed = completed ? completed : 0;
 
 		if (deadline) this.deadline = deadline;
 
-    const relatedTasks = Global.filterTargetDuty(this);
-    this.completed = relatedTasks ? this.getProgress(relatedTasks as Task[]).current : 0;
 		this.uuid = uuid ? uuid : crypto.randomUUID();
 	}
-
-  getProgress(relatedTasks: Task[]) {
-    const totalTasks = relatedTasks.length;
-    const totalCompletedTasks = relatedTasks.filter((task) => task.completed === true).length;
-    const totalUncompletedTasks = totalTasks - totalCompletedTasks;
-    const current = totalTasks / totalCompletedTasks;
-
-    return { totalTasks, totalCompletedTasks, totalUncompletedTasks, current };
-  }
 }
 
 type Operations = "insert" | "append";

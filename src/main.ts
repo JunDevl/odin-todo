@@ -65,8 +65,6 @@ const Global =(() => {
 
 	let observer: IntersectionObserver | null = null;
 
-	switchPage(Page.Tasks);
-
 	if (!localStorage.getItem("tasks")) {
 		const tasks: DutyPrototype[] = boilerplateTasks as DutyPrototype[];
 		deserializeDuty(tasks);
@@ -86,6 +84,8 @@ const Global =(() => {
 			JSON.parse(localStorage.getItem("projects") as string) as DutyPrototype[],
 		);
 	}
+
+	switchPage(Page.Tasks);
 
 	function generateObserver(observedElement: HTMLElement) {
 		const observer = new IntersectionObserver(
@@ -224,8 +224,6 @@ const Global =(() => {
 					);
 
 					insertDuty(serializedTask);
-
-					writeTaskToDOM(serializedTask, "append", document.querySelector<HTMLDivElement>("div#todo ul.container"));
 					break;
 				}
 				case "project": {
@@ -237,15 +235,15 @@ const Global =(() => {
 						description,
 						priority,
 						deadline,
+            completed as number,
 						uuid,
 					);
 
 					insertDuty(serializedProject);
-
-					writeProjectToDOM(serializedProject, "append", document.querySelector<HTMLDivElement>("div#projects ul.container"));
 					break;
 				}
 			}
+
 		}
 	}
 
