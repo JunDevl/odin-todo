@@ -16,5 +16,12 @@
     "type": "project",
     "title": "Art Course",
     "description": ""
+  },
+  {
+    "uuid": "216710da-d2f3-4a6a-96ff-60324bf88f15",
+    "type": "project",
+    "title": "Self improvement",
+    "description": "I only got to live one life, might as well not throw it into the trash",
+    "childTasksUuid": ["f8861a07-4428-4c7f-9caf-c18dcfa782b2", "6aa46a82-a3b9-4f24-9f79-faec854a4d34"]
   }
 ]

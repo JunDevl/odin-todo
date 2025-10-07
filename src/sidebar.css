@@ -9,13 +9,20 @@ nav.sidebar {
   border: 1px solid white;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: stretch;
 }
 
 nav.sidebar ul {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
   gap: 1rem;
+}
+
+nav.sidebar ul li button {
+  border: none;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  width: stretch;
+  font-size: 1rem;
 }

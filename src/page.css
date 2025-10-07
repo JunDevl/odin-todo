@@ -48,7 +48,7 @@ body {
   align-items: flex-start;
   justify-content: center;
   background-color: var(--base-color-3);
-  height: 150dvh;
+  height: 150dvh; /* REMOVE THIS PROPERTY IN THE FUTURE */
 }
 
 main.content {

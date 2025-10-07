@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/JunDevl/odin-todo#readme",
   "devDependencies": {
+    "@biomejs/biome": "^2.2.5",
     "css-loader": "^7.1.2",
     "html-webpack-plugin": "^5.6.4",
     "raw-loader": "^4.0.2",
