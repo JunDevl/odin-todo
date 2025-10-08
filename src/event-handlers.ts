@@ -13,9 +13,9 @@ export function handleInsertion(
 	writeToDOM: ReturnType<typeof generateDOMWriteable>,
 ) {
 	const ev = e as MouseEvent;
-	const test = type === "task" ? new Task() : new Project([]);
+	//const test = type === "task" ? new Task() : new Project([]);
 
-	writeToDOM(test, "insert", document.querySelector<HTMLDivElement>("div#todo ul.container"));
+	//writeToDOM(test, "insert", document.querySelector<HTMLDivElement>("div#todo ul.container"));
 }
 
 export function handleItemSelection(
@@ -24,16 +24,23 @@ export function handleItemSelection(
 	selectionState: SelectionState,
 ) {
 	const target = e.target as HTMLElement;
-	const targetUUID = target.getAttribute("uuid") as UUID;
 
-  const divIdContext = type === "task" ? "todo" : "projects";
+	const targetUUID = target.getAttribute("uuid")
+		? (target.getAttribute("uuid") as UUID)
+		: target.matches(`div.${type}`)
+			? (target.parentElement?.getAttribute("uuid") as UUID)
+			: undefined;
+
+	const divIdContext = type === "task" ? "todo" : "projects";
 
 	if (!targetUUID) {
-    const selectedElements = document.querySelectorAll<HTMLElement>(
+		const selectedElements = document.querySelectorAll<HTMLElement>(
 			`div#${divIdContext} ul.container li`,
-	  );
+		);
 
-		selectedElements.forEach((el) => { el.removeAttribute("class") });
+		selectedElements.forEach((el) => {
+			el.removeAttribute("class");
+		});
 
 		selectionState.origin = null;
 		selectionState.selected.clear();

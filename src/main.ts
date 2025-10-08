@@ -28,7 +28,7 @@ import type {
 } from "./utils";
 import { Page, Project, Task } from "./utils";
 
-const Global =(() => {
+const Global = (() => {
 	const tasks: Map<UUID, Task> = new Map();
 	const projects: Map<UUID, Project> = new Map();
 
@@ -37,9 +37,12 @@ const Global =(() => {
 		selected: new Set(),
 	};
 
-	document.body.addEventListener("click", (e) =>
-		handleItemSelection(e, "task", selectionState),
-	);
+	let currentPage = Page.Tasks;
+
+	let observer: IntersectionObserver | null = null;
+
+	let currentSelectionHandler = (e: MouseEvent) =>
+		handleItemSelection(e, "task", selectionState);
 
 	const sideOptions = document.querySelectorAll("nav.sidebar ul li button");
 	sideOptions.forEach((element) => {
@@ -63,8 +66,6 @@ const Global =(() => {
 		});
 	});
 
-	let observer: IntersectionObserver | null = null;
-
 	if (!localStorage.getItem("tasks")) {
 		const tasks: DutyPrototype[] = boilerplateTasks as DutyPrototype[];
 		deserializeDuty(tasks);
@@ -85,7 +86,7 @@ const Global =(() => {
 		);
 	}
 
-	switchPage(Page.Tasks);
+	switchPage(currentPage);
 
 	function generateObserver(observedElement: HTMLElement) {
 		const observer = new IntersectionObserver(
@@ -129,6 +130,13 @@ const Global =(() => {
 				const addTaskButton =
 					document.querySelector<HTMLButtonElement>("button.add");
 
+				document.removeEventListener("click", currentSelectionHandler);
+
+				currentSelectionHandler = (e) =>
+					handleItemSelection(e, "task", selectionState);
+
+				document.addEventListener("click", currentSelectionHandler);
+
 				if (addTaskButton)
 					addTaskButton.addEventListener("click", (e) =>
 						handleInsertion(e, "task", () => writeTaskToDOM),
@@ -139,8 +147,14 @@ const Global =(() => {
 				);
 
 				tasks.forEach((task) => {
-					writeTaskToDOM(task, "append", document.querySelector<HTMLDivElement>("div#todo ul.container"));
+					writeTaskToDOM(
+						task,
+						"append",
+						document.querySelector<HTMLDivElement>("div#todo ul.container"),
+					);
 				});
+
+				currentPage = Page.Tasks;
 
 				break;
 			}
@@ -151,9 +165,16 @@ const Global =(() => {
 				const addProjectButton =
 					document.querySelector<HTMLButtonElement>("button.add");
 
+				document.removeEventListener("click", currentSelectionHandler);
+
+				currentSelectionHandler = (e) =>
+					handleItemSelection(e, "project", selectionState);
+
+				document.addEventListener("click", currentSelectionHandler);
+
 				if (addProjectButton)
 					addProjectButton.addEventListener("click", (e) =>
-						handleInsertion(e, "task", () => writeProjectToDOM),
+						handleInsertion(e, "project", () => writeProjectToDOM),
 					);
 
 				observer = generateObserver(
@@ -161,18 +182,28 @@ const Global =(() => {
 				);
 
 				projects.forEach((project) => {
-					writeProjectToDOM(project, "append", document.querySelector<HTMLDivElement>("div#projects ul.container"));
+					writeProjectToDOM(
+						project,
+						"append",
+						document.querySelector<HTMLDivElement>("div#projects ul.container"),
+					);
 				});
+
+				currentPage = Page.Projects;
 
 				break;
 			}
 			case Page.Tracker:
 				newContent.innerHTML = TrackerComponent;
 
+				currentPage = Page.Tracker;
+
 				break;
 
 			case Page.Configurations:
 				newContent.innerHTML = ConfigComponent;
+
+				currentPage = Page.Configurations;
 
 				break;
 		}
@@ -200,59 +231,35 @@ const Global =(() => {
 
 	function deserializeDuty(duties: DutyPrototype[]) {
 		for (const duty of duties) {
-			const {
-				uuid,
-				completed,
-				title,
-				description,
-				priority,
-				deadline,
-				parentProjectUuid,
-				childTasksUuid,
-			} = duty;
-
 			switch (duty.type) {
 				case "task": {
-					const serializedTask = new Task(
-						title,
-						description,
-						priority,
-						deadline,
-						parentProjectUuid,
-						completed as boolean,
-						uuid,
-					);
+					const serializedTask = new Task(duty);
 
 					insertDuty(serializedTask);
 					break;
 				}
 				case "project": {
-					const childTasks = childTasksUuid ? childTasksUuid : [];
-
-					const serializedProject = new Project(
-						childTasks,
-						title,
-						description,
-						priority,
-						deadline,
-            completed as number,
-						uuid,
-					);
+					const serializedProject = new Project(duty);
 
 					insertDuty(serializedProject);
 					break;
 				}
 			}
-
 		}
 	}
 
-	function filterTargetDuty(target: Task | Project): Project | Task[] | undefined {
+	function filterTargetDuty(
+		target: Task | Project,
+	): Project | Task[] | undefined {
 		if (target.type === "task") {
-			return target.parentProjectUuid ? projects.get(target.parentProjectUuid) : undefined;
+			return target.parentProjectUuid
+				? projects.get(target.parentProjectUuid)
+				: undefined;
 		}
 
-		return target.childTasksUuid.length > 0 ? target.childTasksUuid.map((taskUuid) => <Task>tasks.get(taskUuid)) : [];
+		return target.childTasksUuid.length > 0
+			? target.childTasksUuid.map((taskUuid) => <Task>tasks.get(taskUuid))
+			: [];
 	}
 
 	return { filterTargetDuty };

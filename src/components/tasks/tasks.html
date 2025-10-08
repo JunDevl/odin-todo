@@ -1,7 +1,10 @@
 <li uuid="{obj.uuid}" tabindex="0">
   <div class="task">
-    <input type="checkbox" name="{obj.uuid}" id="{obj.uuid}" tabindex="-1">
-    <label for="{obj.uuid}">{obj.title}</label>
+    <div class="checkbox">
+      <input type="checkbox" name="{obj.uuid}" id="{obj.uuid}" tabindex="-1">
+      <label for="{obj.uuid}"></label>
+    </div>
+    <h3 class="title">{obj.title}</h3>
     <p>{obj.description}</p>
   </div>
 </li>

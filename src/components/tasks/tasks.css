@@ -1,34 +1,85 @@
-div#todo {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  border: 1px var(--base-border-color) solid;
-  margin: auto;
-  border-radius: 1rem;
-  overflow: hidden;
-  background-color: var(--base-color-2);
+@import url("../list-base-visual.css");
+
+/*###   CUSTOM STYLING FOR CHECKBOX INTERACTION   ###*/
+
+li:has(div.task) {
+  position: relative;
 }
 
-div#todo ul.container li {
+div.checkbox {
+  --size: 1rem;
+
+  position: absolute;
+  display: none;
+  width: var(--size);
+  height: var(--size);
+  left: 1.5rem;
+  top: calc(50% - (var(--size) / 2));
+  box-sizing: border-box;
+}
+
+li:has(div.task):hover div.checkbox {
   display: flex;
-  border-bottom: 1px var(--base-border-color) solid;
+}
+
+input[type="checkbox"] { width: 0; height: 0; display: none; }
+
+input[type="checkbox"] + label {
+  flex: 1;
+  display: inline-flex;
   justify-content: center;
+  align-items: center;
+  background: tranparent;
+  border: 2px solid white;
+  border-radius: 2px;
+  cursor: pointer;  
+  transition: all 250ms cubic-bezier(.4,.0,.23,1);
 }
 
-div#todo ul.container li.selected {
-  background-color: var(--base-color-1);
+input[type="checkbox"]:checked + label{
+  border: .52em solid #FFEB3B;
+  animation: shrink-bounce 200ms cubic-bezier(.4,.0,.23,1);
 }
 
-div#todo ul.container li.origin-selection {
-  --border-color: oklch(from var(--accent-color) l calc(c - 0.15) h);
-
-  border-color: var(--border-color);
-  outline: 1px var(--border-color) solid;
+input[type="checkbox"]:checked + label:before{
+  content: "";
+  position: absolute;
+  top: .475em;
+  left: .2em;
+  border-right: 3px solid transparent;
+  border-bottom: 3px solid transparent;
+  transform: rotate(45deg);
+  transform-origin: 0% 100%;
+  animation: checkbox-check 125ms 250ms cubic-bezier(.4,.0,.23,1) forwards;
 }
 
-div.task {
-  padding: 2rem;
-  gap: 1rem;
-  margin: auto;
-  display: flex;
+@keyframes shrink-bounce{
+  0%{
+    transform: scale(1);
+  }
+  33%{    
+    transform: scale(.85);
+  }
+  100%{
+    transform: scale(1);    
+  }
+}
+@keyframes checkbox-check{
+  0%{
+    width: 0;
+    height: 0;
+    border-color: black;
+    transform: translate3d(0,0,0) rotate(45deg);
+  }
+  33%{
+    width: .2em;
+    height: 0;
+    transform: translate3d(0,0,0) rotate(45deg);
+  }
+  100%{    
+    width: .2em;
+    height: .5em;    
+    border-color: black;
+    transform: translate3d(0,-.5em,0) rotate(45deg);
+  }
 }

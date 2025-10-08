@@ -1,5 +1,3 @@
-import Global from "./main";
-
 export type Prettify<T> = {
 	[k in keyof T]: T[k];
 } & {};
@@ -27,11 +25,11 @@ export type SelectionState = {
 export interface DutyPrototype {
 	readonly type: DutyType;
 	readonly uuid: UUID;
-  completed: boolean | number;
 	title?: string; // TO-DO: implement this
 	description?: string;
 	priority?: Priority; // TO-DO: implement this
 	deadline?: Date;
+	completed?: Date | number | null;
 
 	parentProjectUuid?: UUID; // Exclusively implemented by Tasks class
 	childTasksUuid?: UUID[]; // Excluively implemented by Projects class
@@ -39,23 +37,19 @@ export interface DutyPrototype {
 
 export class Task implements DutyPrototype {
 	readonly type = "task";
-  completed: boolean;
+	readonly uuid: UUID;
 	title: string;
 	description: string;
 	priority: Priority;
 	deadline?: Date;
 	parentProjectUuid?: UUID;
-	readonly uuid: UUID;
+	completed: Date | null;
 
-	constructor(
-		title?: string,
-		description?: string,
-		priority?: Priority,
-		deadline?: Date,
-		parentProjectUuid?: UUID,
-    completed?: boolean,
-		uuid?: UUID,
-	) {
+	constructor(prototype: DutyPrototype) {
+		const { title, description, priority, deadline, parentProjectUuid, uuid } =
+			prototype;
+		const completed = <string>(prototype.completed as unknown);
+
 		this.title = title ? title : "";
 		this.description = description ? description : "";
 		this.priority = priority ? priority : defaultPriority;
@@ -63,14 +57,14 @@ export class Task implements DutyPrototype {
 		if (deadline) this.deadline = deadline;
 		if (parentProjectUuid) this.parentProjectUuid = parentProjectUuid;
 
-    this.completed = completed ? completed : false;
+		this.completed = completed ? new Date(completed) : null;
 		this.uuid = uuid ? uuid : crypto.randomUUID();
 	}
 }
 
 export class Project implements DutyPrototype {
 	readonly type = "project";
-  completed: number;
+	completed: number;
 	title: string;
 	description: string;
 	priority: Priority;
@@ -78,20 +72,16 @@ export class Project implements DutyPrototype {
 	deadline?: Date;
 	readonly uuid: UUID;
 
-	constructor(
-		childTasksUuid?: UUID[],
-		title?: string,
-		description?: string,
-		priority?: Priority,
-		deadline?: Date,
-		completed?: number,
-		uuid?: UUID,
-	) {
+	constructor(prototype: DutyPrototype) {
+		const { childTasksUuid, title, description, priority, deadline, uuid } =
+			prototype;
+		const completed = <number>(prototype.completed as unknown);
+
 		this.childTasksUuid = childTasksUuid ? childTasksUuid : [];
 		this.title = title ? title : "";
 		this.description = description ? description : "";
 		this.priority = priority ? priority : defaultPriority;
-    this.completed = completed ? completed : 0;
+		this.completed = completed ? completed : 0;
 
 		if (deadline) this.deadline = deadline;
 
@@ -104,7 +94,11 @@ type Operations = "insert" | "append";
 export function generateDOMWriteable<T extends Task | Project>(
 	HTMLComponent: string,
 ) {
-	return (object: T, operation: Operations, targetParent: HTMLElement | null) => {
+	return (
+		object: T,
+		operation: Operations,
+		targetParent: HTMLElement | null,
+	) => {
 		if (!targetParent)
 			throw new Error("Target element must be a valid HTML element container.");
 
