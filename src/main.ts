@@ -2,6 +2,7 @@ import "./default.css";
 import "./sidebar.css";
 import "./page.css";
 
+import "./components/list-base-visual.css";
 import "./components/tasks/tasks.css";
 import "./components/projects/projects.css";
 import "./components/tracker/tracker.css";
