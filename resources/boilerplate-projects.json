@@ -1,28 +1,41 @@
 [
-  {
-    "uuid": "75498230-8193-4259-a9d0-c5f86419c6d1",
-    "type": "project",
-    "title": "CS College",
-    "description": "Here is where i put everything that i have to do to finish college and get a Computer's Science degree."
-  },
-  {
-    "uuid": "d7010060-8105-4b39-a930-08a5a2d6797e",
-    "type": "project",
-    "title": "Snake Game",
-    "description": "A spare project to practice my skills in C#."
-  },
-  {
-    "uuid": "da610330-8005-4a1b-946e-17fd2f446e10",
-    "type": "project",
-    "title": "Art Course",
-    "description": ""
-  },
-  {
-    "uuid": "216710da-d2f3-4a6a-96ff-60324bf88f15",
-    "type": "project",
-    "title": "Self improvement",
-    "description": "I only got to live one life, might as well not throw it into the trash",
-    "childTasksUuid": ["f8861a07-4428-4c7f-9caf-c18dcfa782b2", "6aa46a82-a3b9-4f24-9f79-faec854a4d34"],
-    "completed": 1
-  }
+	{
+		"uuid": "75498230-8193-4259-a9d0-c5f86419c6d1",
+		"type": "project",
+		"title": "CS College",
+		"description": "Here is where i put everything that i have to do to finish college and get a Computer's Science degree.",
+		"deadline": null,
+		"childTasksUuid": [],
+		"completed": 0
+	},
+	{
+		"uuid": "d7010060-8105-4b39-a930-08a5a2d6797e",
+		"type": "project",
+		"title": "Snake Game",
+		"description": "A spare project to practice my skills in C#.",
+		"deadline": null,
+		"childTasksUuid": [],
+		"completed": 0
+	},
+	{
+		"uuid": "da610330-8005-4a1b-946e-17fd2f446e10",
+		"type": "project",
+		"title": "Art Course",
+		"description": "",
+		"deadline": null,
+		"childTasksUuid": [],
+		"completed": 0
+	},
+	{
+		"uuid": "216710da-d2f3-4a6a-96ff-60324bf88f15",
+		"type": "project",
+		"title": "Self improvement",
+		"description": "I only got to live one life, might as well not throw it into the trash",
+		"deadline": null,
+		"childTasksUuid": [
+			"f8861a07-4428-4c7f-9caf-c18dcfa782b2",
+			"6aa46a82-a3b9-4f24-9f79-faec854a4d34"
+		],
+		"completed": 1
+	}
 ]

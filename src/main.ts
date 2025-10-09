@@ -20,6 +20,7 @@ import writeTaskToDOM from "./components/tasks/index";
 import { handleInsertion, handleItemSelection } from "./event-handlers";
 
 import type {
+	AppState,
 	DutyPrototype,
 	DutyType,
 	Prettify,
@@ -29,21 +30,25 @@ import type {
 } from "./utils";
 import { Page, Project, Task } from "./utils";
 
-const Global = (() => {
-	const tasks: Map<UUID, Task> = new Map();
-	const projects: Map<UUID, Project> = new Map();
+const State: AppState = {
+	storedTasks: new Map(),
+	storedProjects: new Map(),
 
-	const selectionState: SelectionState = {
+	currentSelection: {
 		origin: null,
 		selected: new Set(),
-	};
+	},
 
-	let currentPage = Page.Tasks;
+	currentPage: Page.Tasks,
 
-	let observer: IntersectionObserver | null = null;
+	currentObserver: null,
 
-	let currentSelectionHandler = (e: MouseEvent) =>
-		handleItemSelection(e, "task", selectionState);
+	currentItemSelectionEventHandler: (e: MouseEvent) => {},
+};
+
+(() => {
+	State.currentItemSelectionEventHandler = (e: MouseEvent) =>
+		handleItemSelection(e, "task", State.currentSelection, getDuty);
 
 	const sideOptions = document.querySelectorAll("nav.sidebar ul li button");
 	sideOptions.forEach((element) => {
@@ -87,7 +92,7 @@ const Global = (() => {
 		);
 	}
 
-	switchPage(currentPage);
+	switchPage(State.currentPage);
 
 	function generateObserver(observedElement: HTMLElement) {
 		const observer = new IntersectionObserver(
@@ -115,10 +120,10 @@ const Global = (() => {
 			document.querySelector<HTMLDivElement>("main.content");
 		if (previousContent) document.body.removeChild(previousContent);
 
-		if (observer) observer.disconnect();
+		if (State.currentObserver) State.currentObserver.disconnect();
 
-		selectionState.origin = null;
-		selectionState.selected.clear();
+		State.currentSelection.origin = null;
+		State.currentSelection.selected.clear();
 
 		const newContent = document.createElement("main");
 		newContent.setAttribute("class", "content");
@@ -131,31 +136,41 @@ const Global = (() => {
 				const addTaskButton =
 					document.querySelector<HTMLButtonElement>("button.add");
 
-				document.removeEventListener("click", currentSelectionHandler);
+				document.removeEventListener(
+					"click",
+					State.currentItemSelectionEventHandler,
+				);
 
-				currentSelectionHandler = (e) =>
-					handleItemSelection(e, "task", selectionState);
+				State.currentItemSelectionEventHandler = (e) =>
+					handleItemSelection(e, "task", State.currentSelection, getDuty);
 
-				document.addEventListener("click", currentSelectionHandler);
+				document.addEventListener(
+					"click",
+					State.currentItemSelectionEventHandler,
+				);
 
 				if (addTaskButton)
 					addTaskButton.addEventListener("click", (e) =>
 						handleInsertion(e, "task", () => writeTaskToDOM),
 					);
 
-				observer = generateObserver(
+				State.currentObserver = generateObserver(
 					document.querySelector("div.menu") as HTMLElement,
 				);
 
-				tasks.forEach((task) => {
+				State.storedTasks.forEach((task) => {
 					writeTaskToDOM(
 						task,
 						"append",
 						document.querySelector<HTMLDivElement>("div#todo ul.container"),
 					);
+					const checkbox = document.querySelector<HTMLInputElement>(
+						`div#todo ul.container li[uuid="${task.uuid}"] div.checkbox input[type="checkbox"]`,
+					) as HTMLInputElement;
+					checkbox.checked = !!task.completed;
 				});
 
-				currentPage = Page.Tasks;
+				State.currentPage = Page.Tasks;
 
 				break;
 			}
@@ -166,23 +181,29 @@ const Global = (() => {
 				const addProjectButton =
 					document.querySelector<HTMLButtonElement>("button.add");
 
-				document.removeEventListener("click", currentSelectionHandler);
+				document.removeEventListener(
+					"click",
+					State.currentItemSelectionEventHandler,
+				);
 
-				currentSelectionHandler = (e) =>
-					handleItemSelection(e, "project", selectionState);
+				State.currentItemSelectionEventHandler = (e) =>
+					handleItemSelection(e, "project", State.currentSelection, getDuty);
 
-				document.addEventListener("click", currentSelectionHandler);
+				document.addEventListener(
+					"click",
+					State.currentItemSelectionEventHandler,
+				);
 
 				if (addProjectButton)
 					addProjectButton.addEventListener("click", (e) =>
 						handleInsertion(e, "project", () => writeProjectToDOM),
 					);
 
-				observer = generateObserver(
+				State.currentObserver = generateObserver(
 					document.querySelector("div.menu") as HTMLElement,
 				);
 
-				projects.forEach((project) => {
+				State.storedProjects.forEach((project) => {
 					writeProjectToDOM(
 						project,
 						"append",
@@ -190,21 +211,21 @@ const Global = (() => {
 					);
 				});
 
-				currentPage = Page.Projects;
+				State.currentPage = Page.Projects;
 
 				break;
 			}
 			case Page.Tracker:
 				newContent.innerHTML = TrackerComponent;
 
-				currentPage = Page.Tracker;
+				State.currentPage = Page.Tracker;
 
 				break;
 
 			case Page.Configurations:
 				newContent.innerHTML = ConfigComponent;
 
-				currentPage = Page.Configurations;
+				State.currentPage = Page.Configurations;
 
 				break;
 		}
@@ -213,10 +234,10 @@ const Global = (() => {
 	function insertDuty(duty: Task | Project) {
 		switch (duty.type) {
 			case "task":
-				tasks.set(duty.uuid, duty);
+				State.storedTasks.set(duty.uuid, duty);
 				break;
 			case "project":
-				projects.set(duty.uuid, duty);
+				State.storedProjects.set(duty.uuid, duty);
 				break;
 		}
 	}
@@ -224,9 +245,9 @@ const Global = (() => {
 	function getDuty(uuid: UUID, type: DutyType) {
 		switch (type) {
 			case "task":
-				return tasks.get(uuid);
+				return State.storedTasks.get(uuid);
 			case "project":
-				return tasks.get(uuid);
+				return State.storedTasks.get(uuid);
 		}
 	}
 
@@ -254,16 +275,18 @@ const Global = (() => {
 	): Project | Task[] | undefined {
 		if (target.type === "task") {
 			return target.parentProjectUuid
-				? projects.get(target.parentProjectUuid)
+				? State.storedProjects.get(target.parentProjectUuid)
 				: undefined;
 		}
 
 		return target.childTasksUuid.length > 0
-			? target.childTasksUuid.map((taskUuid) => <Task>tasks.get(taskUuid))
+			? target.childTasksUuid.map(
+					(taskUuid) => <Task>State.storedTasks.get(taskUuid),
+				)
 			: [];
 	}
 
 	return { filterTargetDuty };
 })();
 
-export default Global;
+export default State;

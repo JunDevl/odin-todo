@@ -1,0 +1,11 @@
+div#projects ul.container li {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+div.project {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}

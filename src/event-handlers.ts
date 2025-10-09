@@ -1,10 +1,10 @@
-import {
-	type DutyType,
-	type generateDOMWriteable,
+import type {
+	DutyType,
+	generateDOMWriteable,
 	Project,
-	type SelectionState,
+	SelectionState,
 	Task,
-	type UUID,
+	UUID,
 } from "./utils";
 
 export function handleInsertion(
@@ -22,14 +22,46 @@ export function handleItemSelection(
 	e: MouseEvent,
 	type: DutyType,
 	selectionState: SelectionState,
+	getDuty: (uuid: UUID, type: DutyType) => Task | Project | undefined,
 ) {
-	const target = e.target as HTMLElement;
+	let target = e.target as HTMLElement;
+	let targetUUID: UUID | null = null;
 
-	const targetUUID = target.getAttribute("uuid")
-		? (target.getAttribute("uuid") as UUID)
-		: target.matches(`div.${type}`)
-			? (target.parentElement?.getAttribute("uuid") as UUID)
-			: undefined;
+	const targetIsLI: boolean = !!target.getAttribute("uuid");
+	const targetIsChildOfLI: boolean = !!target.matches(`div.${type}`);
+	const isTaskCheckbox = !!target.matches("div.task div.checkbox label");
+	const isTaskInputCheckbox = !!target.matches("div.task div.checkbox input");
+
+	if (targetIsLI) targetUUID = target.getAttribute("uuid") as UUID;
+
+	if (targetIsChildOfLI) {
+		const parent = target.parentElement as HTMLElement;
+		targetUUID = parent.getAttribute("uuid") as UUID;
+		target = parent;
+	}
+
+	if (isTaskCheckbox) {
+		const parent = target.parentElement?.parentElement
+			?.parentElement as HTMLElement;
+		targetUUID = parent.getAttribute("uuid") as UUID;
+		target = parent;
+
+		const taskWasChecked = !!(
+			(e.target as HTMLElement).parentElement?.getAttribute("completed") !==
+			"null"
+		);
+		const completedOn = !taskWasChecked ? new Date() : null;
+
+		(e.target as HTMLElement).parentElement?.setAttribute(
+			"completed",
+			String(completedOn),
+		);
+
+		const task = getDuty(targetUUID, "task") as Task;
+		task.completed = completedOn;
+	}
+
+	if (isTaskInputCheckbox) return;
 
 	const divIdContext = type === "task" ? "todo" : "projects";
 

@@ -83,6 +83,7 @@ div.menu {
   background-color: oklch(from var(--base-color-3) l c h / 60%);
   margin-bottom: .1rem;
   backdrop-filter: blur(6px);
+  z-index: 1;
 }
 
 div.menu[data-currently-sticky="true"] {

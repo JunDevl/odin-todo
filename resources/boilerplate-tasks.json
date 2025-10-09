@@ -4,6 +4,8 @@
 		"type": "task",
 		"title": "Laundry",
 		"description": "Do the laundry",
+		"deadline": "06-10-2020",
+		"priority": "medium",
 		"completed": null
 	},
 	{
@@ -11,6 +13,8 @@
 		"type": "task",
 		"title": "Dishes",
 		"description": "Do the dishes",
+		"deadline": "06-11-2020",
+		"priority": "medium",
 		"completed": null
 	},
 	{
@@ -18,6 +22,8 @@
 		"type": "task",
 		"title": "Relationship Health",
 		"description": "Kiss wife",
+		"deadline": null,
+		"priority": "high",
 		"completed": "04-05-2018"
 	},
 	{
@@ -25,6 +31,8 @@
 		"type": "task",
 		"title": "Bill",
 		"description": "Pay the mechanic",
+		"deadline": "07-17-2019",
+		"priority": "low",
 		"completed": "07-17-2019"
 	},
 	{
@@ -32,6 +40,8 @@
 		"type": "task",
 		"title": "Git gud",
 		"description": "Evolve as a human being",
+		"deadline": "01-01-3025",
+		"priority": "high",
 		"completed": null
 	},
 	{
@@ -39,6 +49,8 @@
 		"type": "task",
 		"title": "Control Finance",
 		"description": "Fill in your finance spreadsheet",
+		"deadline": null,
+		"priority": "medium",
 		"completed": null
 	},
 	{
@@ -46,6 +58,8 @@
 		"type": "task",
 		"title": "Devotional",
 		"description": "Reflect about life",
+		"deadline": null,
+		"priority": "medium",
 		"completed": "12-31-2014"
 	}
 ]

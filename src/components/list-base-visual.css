@@ -11,10 +11,12 @@ div#todo, div#projects {
 
 ul.container li {
   padding: 1rem;
-  display: flex;
   border-bottom: 1px var(--base-border-color) solid;
-  justify-content: center;
-  align-items: center;
+  display: flex;
+}
+
+ul.container li:hover {
+  background-color: oklch(from var(--base-color-3) calc(l + 0.05) c h);
 }
 
 ul.container li.selected {

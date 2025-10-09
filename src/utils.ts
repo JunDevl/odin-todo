@@ -22,16 +22,29 @@ export type SelectionState = {
 	selected: Set<UUID>;
 };
 
+export interface AppState {
+	storedTasks: Map<UUID, Task>;
+	storedProjects: Map<UUID, Project>;
+
+	currentSelection: SelectionState;
+
+	currentPage: Page;
+
+	currentObserver: IntersectionObserver | null;
+
+	currentItemSelectionEventHandler: (e: MouseEvent) => void;
+}
+
 export interface DutyPrototype {
 	readonly type: DutyType;
 	readonly uuid: UUID;
-	title?: string; // TO-DO: implement this
-	description?: string;
-	priority?: Priority; // TO-DO: implement this
-	deadline?: Date;
-	completed?: Date | number | null;
+	title: string; // TO-DO: implement this
+	description: string;
+	priority: Priority; // TO-DO: implement this
+	deadline: Date | null;
+	completed: Date | number | null;
 
-	parentProjectUuid?: UUID; // Exclusively implemented by Tasks class
+	parentProjectUuid?: UUID | null; // Exclusively implemented by Tasks class
 	childTasksUuid?: UUID[]; // Excluively implemented by Projects class
 }
 
@@ -41,21 +54,30 @@ export class Task implements DutyPrototype {
 	title: string;
 	description: string;
 	priority: Priority;
-	deadline?: Date;
-	parentProjectUuid?: UUID;
+	deadline: Date | null;
+	parentProjectUuid: UUID | null;
 	completed: Date | null;
 
 	constructor(prototype: DutyPrototype) {
-		const { title, description, priority, deadline, parentProjectUuid, uuid } =
-			prototype;
-		const completed = <string>(prototype.completed as unknown);
+		const {
+			title,
+			description,
+			priority,
+			deadline,
+			parentProjectUuid,
+			uuid,
+			completed,
+		} = prototype;
+
+		if (typeof completed === "number") {
+			throw new Error("You cannot insantiate a new task object with a number.");
+		}
 
 		this.title = title ? title : "";
 		this.description = description ? description : "";
 		this.priority = priority ? priority : defaultPriority;
-
-		if (deadline) this.deadline = deadline;
-		if (parentProjectUuid) this.parentProjectUuid = parentProjectUuid;
+		this.deadline = deadline ? deadline : null;
+		this.parentProjectUuid = parentProjectUuid ? parentProjectUuid : null;
 
 		this.completed = completed ? new Date(completed) : null;
 		this.uuid = uuid ? uuid : crypto.randomUUID();
@@ -69,21 +91,31 @@ export class Project implements DutyPrototype {
 	description: string;
 	priority: Priority;
 	childTasksUuid: UUID[];
-	deadline?: Date;
+	deadline: Date | null;
 	readonly uuid: UUID;
 
 	constructor(prototype: DutyPrototype) {
-		const { childTasksUuid, title, description, priority, deadline, uuid } =
-			prototype;
-		const completed = <number>(prototype.completed as unknown);
+		const {
+			childTasksUuid,
+			title,
+			description,
+			priority,
+			deadline,
+			uuid,
+			completed,
+		} = prototype;
+		if (completed instanceof Date)
+			throw new Error(
+				"You cannot insantiate a new task object with a date string.",
+			);
 
 		this.childTasksUuid = childTasksUuid ? childTasksUuid : [];
 		this.title = title ? title : "";
 		this.description = description ? description : "";
 		this.priority = priority ? priority : defaultPriority;
-		this.completed = completed ? completed : 0;
 
-		if (deadline) this.deadline = deadline;
+		this.completed = completed ? completed : 0;
+		this.deadline = deadline ? deadline : null;
 
 		this.uuid = uuid ? uuid : crypto.randomUUID();
 	}
@@ -131,10 +163,10 @@ export function generateDOMWriteable<T extends Task | Project>(
 		};
 
 		if (operation === "insert") {
-			targetParent.innerHTML = `${sanitizeHTML()}${targetParent.innerHTML}`;
+			targetParent.insertAdjacentHTML("afterbegin", sanitizeHTML());
 			return;
 		}
 
-		targetParent.innerHTML += sanitizeHTML();
+		targetParent.insertAdjacentHTML("beforeend", sanitizeHTML());
 	};
 }
