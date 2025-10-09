@@ -7,6 +7,8 @@ import type {
 	UUID,
 } from "./utils";
 
+import { State } from "./main";
+
 export function handleInsertion(
 	e: Event,
 	type: DutyType,
@@ -22,7 +24,6 @@ export function handleItemSelection(
 	e: MouseEvent,
 	type: DutyType,
 	selectionState: SelectionState,
-	getDuty: (uuid: UUID, type: DutyType) => Task | Project | undefined,
 ) {
 	let target = e.target as HTMLElement;
 	let targetUUID: UUID | null = null;
@@ -57,7 +58,7 @@ export function handleItemSelection(
 			String(completedOn),
 		);
 
-		const task = getDuty(targetUUID, "task") as Task;
+		const task = State.storedTasks.get(targetUUID) as Task;
 		task.completed = completedOn;
 	}
 
@@ -97,8 +98,8 @@ export function handleItemSelection(
 				previousOrigin?.removeAttribute("class");
 			}
 
-			(selectionState.origin = targetUUID),
-				selectionState.selected.add(targetUUID);
+			selectionState.origin = targetUUID;
+			selectionState.selected.add(targetUUID);
 
 			target.classList.add("selected");
 			target.classList.add("origin-selection");

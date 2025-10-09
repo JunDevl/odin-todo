@@ -4,7 +4,7 @@
 		"type": "task",
 		"title": "Laundry",
 		"description": "Do the laundry",
-		"deadline": "06-10-2020",
+		"deadline": 1591747200,
 		"priority": "medium",
 		"completed": null
 	},
@@ -13,7 +13,7 @@
 		"type": "task",
 		"title": "Dishes",
 		"description": "Do the dishes",
-		"deadline": "06-11-2020",
+		"deadline": 1591833600,
 		"priority": "medium",
 		"completed": null
 	},
@@ -24,25 +24,26 @@
 		"description": "Kiss wife",
 		"deadline": null,
 		"priority": "high",
-		"completed": "04-05-2018"
+		"completed": 1522886400
 	},
 	{
 		"uuid": "1a7bc5ed-e31b-4977-808a-d750f7b70bbb",
 		"type": "task",
 		"title": "Bill",
 		"description": "Pay the mechanic",
-		"deadline": "07-17-2019",
+		"deadline": 1563321600,
 		"priority": "low",
-		"completed": "07-17-2019"
+		"completed": 1563321600
 	},
 	{
 		"uuid": "6aa46a82-a3b9-4f24-9f79-faec854a4d34",
 		"type": "task",
 		"title": "Git gud",
 		"description": "Evolve as a human being",
-		"deadline": "01-01-3025",
+		"deadline": 33292598400,
 		"priority": "high",
-		"completed": null
+		"completed": null,
+		"parentProject": "216710da-d2f3-4a6a-96ff-60324bf88f15"
 	},
 	{
 		"uuid": "b87a1c93-9e0e-45a7-98be-937844032991",
@@ -60,6 +61,7 @@
 		"description": "Reflect about life",
 		"deadline": null,
 		"priority": "medium",
-		"completed": "12-31-2014"
+		"completed": 1417392000,
+		"parentProject": "216710da-d2f3-4a6a-96ff-60324bf88f15"
 	}
 ]

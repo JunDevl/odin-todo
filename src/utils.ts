@@ -1,3 +1,5 @@
+import { State } from "./main";
+
 export type Prettify<T> = {
 	[k in keyof T]: T[k];
 } & {};
@@ -26,13 +28,12 @@ export interface AppState {
 	storedTasks: Map<UUID, Task>;
 	storedProjects: Map<UUID, Project>;
 
-	currentSelection: SelectionState;
+	page: Page;
 
-	currentPage: Page;
+	observer: IntersectionObserver | null;
 
-	currentObserver: IntersectionObserver | null;
-
-	currentItemSelectionEventHandler: (e: MouseEvent) => void;
+	selection: SelectionState;
+	itemSelectionEvHandler: (e: MouseEvent) => void;
 }
 
 export interface DutyPrototype {
@@ -44,8 +45,8 @@ export interface DutyPrototype {
 	deadline: Date | null;
 	completed: Date | number | null;
 
-	parentProjectUuid?: UUID | null; // Exclusively implemented by Tasks class
-	childTasksUuid?: UUID[]; // Excluively implemented by Projects class
+	parentProject?: UUID | Project | null; // Exclusively implemented by Tasks class
+	childTasks?: Task[]; // Excluively implemented by Projects class
 }
 
 export class Task implements DutyPrototype {
@@ -55,7 +56,7 @@ export class Task implements DutyPrototype {
 	description: string;
 	priority: Priority;
 	deadline: Date | null;
-	parentProjectUuid: UUID | null;
+	parentProject: UUID | Project | null;
 	completed: Date | null;
 
 	constructor(prototype: DutyPrototype) {
@@ -64,20 +65,16 @@ export class Task implements DutyPrototype {
 			description,
 			priority,
 			deadline,
-			parentProjectUuid,
+			parentProject,
 			uuid,
 			completed,
 		} = prototype;
-
-		if (typeof completed === "number") {
-			throw new Error("You cannot insantiate a new task object with a number.");
-		}
 
 		this.title = title ? title : "";
 		this.description = description ? description : "";
 		this.priority = priority ? priority : defaultPriority;
 		this.deadline = deadline ? deadline : null;
-		this.parentProjectUuid = parentProjectUuid ? parentProjectUuid : null;
+		this.parentProject = parentProject ? parentProject : null;
 
 		this.completed = completed ? new Date(completed) : null;
 		this.uuid = uuid ? uuid : crypto.randomUUID();
@@ -90,13 +87,13 @@ export class Project implements DutyPrototype {
 	title: string;
 	description: string;
 	priority: Priority;
-	childTasksUuid: UUID[];
+	childTasks: Task[];
 	deadline: Date | null;
 	readonly uuid: UUID;
 
 	constructor(prototype: DutyPrototype) {
 		const {
-			childTasksUuid,
+			childTasks,
 			title,
 			description,
 			priority,
@@ -104,18 +101,27 @@ export class Project implements DutyPrototype {
 			uuid,
 			completed,
 		} = prototype;
-		if (completed instanceof Date)
-			throw new Error(
-				"You cannot insantiate a new task object with a date string.",
-			);
 
-		this.childTasksUuid = childTasksUuid ? childTasksUuid : [];
+		const tasks =
+			childTasks?.length !== 0
+				? ((<unknown>childTasks) as UUID[]).map((taskUUID) => {
+						return State.storedTasks.get(taskUUID) as Task;
+					})
+				: [];
+
+		if (tasks.length !== 0) {
+			tasks.forEach((task) => {
+				task.parentProject = this;
+			});
+		}
+
+		this.childTasks = tasks;
 		this.title = title ? title : "";
 		this.description = description ? description : "";
 		this.priority = priority ? priority : defaultPriority;
 
-		this.completed = completed ? completed : 0;
-		this.deadline = deadline ? deadline : null;
+		this.completed = completed ? (completed as number) : 0;
+		this.deadline = deadline ? new Date(deadline) : null;
 
 		this.uuid = uuid ? uuid : crypto.randomUUID();
 	}
