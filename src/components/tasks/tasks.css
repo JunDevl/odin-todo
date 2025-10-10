@@ -63,7 +63,11 @@ div.task input[type="checkbox"] + label {
   border: 3px solid var(--base-border-color);
   border-radius: 2px;
   cursor: pointer;  
-  transition: all 250ms cubic-bezier(.4,.0,.23,1);
+  transition: all 250ms cubic-bezier(.4,.0,.23,1), transform 100ms;
+}
+
+div.task input[type="checkbox"] + label:active {
+  transform: scale(.93);
 }
 
 div.task div.checkbox:has(input[type="checkbox"]:checked) {
