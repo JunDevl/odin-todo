@@ -6,9 +6,9 @@ export type Prettify<T> = {
 
 export type UUID = ReturnType<typeof crypto.randomUUID>;
 
-export type Priority = "low" | "medium" | "high";
+export type Priority = "low" | "medium" | "high" | "very high";
 
-export type DutyType = "task" | "project";
+export type DutyType = "task" | "project" | "note";
 
 export enum Page {
 	Tasks,
@@ -25,8 +25,9 @@ export type SelectionState = {
 };
 
 export interface AppState {
-	storedTasks: Map<UUID, Task>;
-	storedProjects: Map<UUID, Project>;
+	tasks: Map<UUID, Task>;
+	projects: Map<UUID, Project>;
+	notes: Map<UUID, Note>;
 
 	page: Page;
 
@@ -37,27 +38,31 @@ export interface AppState {
 }
 
 export interface DutyPrototype {
-	readonly type: DutyType;
 	readonly uuid: UUID;
+	readonly type: DutyType;
 	title: string; // TO-DO: implement this
 	description: string;
-	priority: Priority; // TO-DO: implement this
-	deadline: Date | null;
-	completed: Date | number | null;
 
-	parentProject?: UUID | Project | null; // Exclusively implemented by Tasks class
-	childTasks?: Task[]; // Excluively implemented by Projects class
+	priority?: Priority; // TO-DO: implement this
+	deadline?: Date | null;
+	completed?: Date | number | null;
+
+	childTasks?: UUID[] | Task[];
+	notes?: UUID[] | Note[];
+	parent?: UUID | Project | Task | null; // Exclusively implemented by Tasks class
 }
 
 export class Task implements DutyPrototype {
-	readonly type = "task";
 	readonly uuid: UUID;
+	readonly type = "task";
 	title: string;
 	description: string;
 	priority: Priority;
 	deadline: Date | null;
-	parentProject: UUID | Project | null;
-	completed: Date | null;
+	completed: Date | number | null;
+	childTasks: UUID[] | Task[];
+	notes: Note[];
+	parent: UUID | Project | Task | null;
 
 	constructor(prototype: DutyPrototype) {
 		const {
@@ -65,31 +70,52 @@ export class Task implements DutyPrototype {
 			description,
 			priority,
 			deadline,
-			parentProject,
-			uuid,
+			childTasks,
+			notes,
+			parent,
 			completed,
+			uuid,
 		} = prototype;
+
+		const relatedNotes =
+			notes?.length !== 0
+				? ((<unknown>notes) as UUID[]).map((noteUUID) => {
+						return State.notes.get(noteUUID) as Note;
+					})
+				: [];
+
+		if (relatedNotes.length !== 0) {
+			relatedNotes.forEach((note) => {
+				note.parent = this;
+			});
+		}
 
 		this.title = title ? title : "";
 		this.description = description ? description : "";
 		this.priority = priority ? priority : defaultPriority;
 		this.deadline = deadline ? deadline : null;
-		this.parentProject = parentProject ? parentProject : null;
+		this.parent = parent ? parent : null;
+		this.childTasks = childTasks ? childTasks : [];
+		this.notes = relatedNotes;
 
-		this.completed = completed ? new Date(completed) : null;
+		if (childTasks?.length === 0)
+			this.completed = completed ? new Date(completed) : null;
+		else this.completed = completed ? completed : 0;
+
 		this.uuid = uuid ? uuid : crypto.randomUUID();
 	}
 }
 
 export class Project implements DutyPrototype {
+	readonly uuid: UUID;
 	readonly type = "project";
-	completed: number;
 	title: string;
 	description: string;
 	priority: Priority;
-	childTasks: Task[];
 	deadline: Date | null;
-	readonly uuid: UUID;
+	completed: number;
+	childTasks: Task[];
+	notes: Note[];
 
 	constructor(prototype: DutyPrototype) {
 		const {
@@ -98,31 +124,63 @@ export class Project implements DutyPrototype {
 			description,
 			priority,
 			deadline,
+			notes,
 			uuid,
 			completed,
 		} = prototype;
 
-		const tasks =
+		const relatedChildTasks =
 			childTasks?.length !== 0
 				? ((<unknown>childTasks) as UUID[]).map((taskUUID) => {
-						return State.storedTasks.get(taskUUID) as Task;
+						return State.tasks.get(taskUUID) as Task;
 					})
 				: [];
 
-		if (tasks.length !== 0) {
-			tasks.forEach((task) => {
-				task.parentProject = this;
+		if (relatedChildTasks.length !== 0) {
+			relatedChildTasks.forEach((task) => {
+				task.parent = this;
 			});
 		}
 
-		this.childTasks = tasks;
+		const relatedNotes =
+			notes?.length !== 0
+				? ((<unknown>notes) as UUID[]).map((noteUUID) => {
+						return State.notes.get(noteUUID) as Note;
+					})
+				: [];
+
+		if (relatedNotes.length !== 0) {
+			relatedNotes.forEach((note) => {
+				note.parent = this;
+			});
+		}
+
+		this.childTasks = relatedChildTasks;
 		this.title = title ? title : "";
 		this.description = description ? description : "";
 		this.priority = priority ? priority : defaultPriority;
+		this.notes = relatedNotes;
 
 		this.completed = completed ? (completed as number) : 0;
 		this.deadline = deadline ? new Date(deadline) : null;
 
+		this.uuid = uuid ? uuid : crypto.randomUUID();
+	}
+}
+
+export class Note implements DutyPrototype {
+	readonly uuid: UUID;
+	readonly type = "note";
+	title: string;
+	description: string;
+	parent: UUID | Task | Project | null;
+
+	constructor(prototype: DutyPrototype) {
+		const { title, description, parent, uuid } = prototype;
+
+		this.title = title ? title : "";
+		this.description = description ? description : "";
+		this.parent = parent ? parent : null;
 		this.uuid = uuid ? uuid : crypto.randomUUID();
 	}
 }

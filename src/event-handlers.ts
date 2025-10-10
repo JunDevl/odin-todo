@@ -1,3 +1,4 @@
+import { State } from "./main";
 import type {
 	DutyType,
 	generateDOMWriteable,
@@ -6,8 +7,6 @@ import type {
 	Task,
 	UUID,
 } from "./utils";
-
-import { State } from "./main";
 
 export function handleInsertion(
 	e: Event,
@@ -58,7 +57,7 @@ export function handleItemSelection(
 			String(completedOn),
 		);
 
-		const task = State.storedTasks.get(targetUUID) as Task;
+		const task = State.tasks.get(targetUUID) as Task;
 		task.completed = completedOn;
 	}
 

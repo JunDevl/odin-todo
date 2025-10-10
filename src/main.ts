@@ -7,24 +7,26 @@ import "./components/tasks/tasks.css";
 import "./components/projects/projects.css";
 import "./components/tracker/tracker.css";
 
+import boilerplateNotes from "../resources/boilerplate-notes.json";
 import boilerplateProjects from "../resources/boilerplate-projects.json";
 import boilerplateTasks from "../resources/boilerplate-tasks.json";
+
 import ConfigComponent from "./components/home-pages/config-page.html";
 import ProjectsComponent from "./components/home-pages/projects-page.html";
 import TodoComponent from "./components/home-pages/tasks-page.html";
 import TrackerComponent from "./components/home-pages/tracker-page.html";
-
 import writeProjectToDOM from "./components/projects/index";
 import writeTaskToDOM from "./components/tasks/index";
 
 import { handleInsertion, handleItemSelection } from "./event-handlers";
 
-import type { AppState, DutyPrototype } from "./utils";
-import { Page, Project, Task } from "./utils";
+import type { AppState, DutyPrototype, UUID } from "./utils";
+import { Note, Page, Project, Task } from "./utils";
 
 const State: AppState = {
-	storedTasks: new Map(),
-	storedProjects: new Map(),
+	tasks: new Map(),
+	projects: new Map(),
+	notes: new Map(),
 
 	page: Page.Tasks,
 
@@ -65,6 +67,18 @@ export { State };
 		});
 	});
 
+	if (!localStorage.getItem("notes")) {
+		const notes: DutyPrototype[] = (<unknown>(
+			boilerplateNotes
+		)) as DutyPrototype[];
+		deserializeDuty(notes);
+		localStorage.setItem("notes", JSON.stringify(notes));
+	} else {
+		deserializeDuty(
+			JSON.parse(localStorage.getItem("notes") as string) as DutyPrototype[],
+		);
+	}
+
 	if (!localStorage.getItem("tasks")) {
 		const tasks: DutyPrototype[] = (<unknown>(
 			boilerplateTasks
@@ -76,6 +90,16 @@ export { State };
 			JSON.parse(localStorage.getItem("tasks") as string) as DutyPrototype[],
 		);
 	}
+
+	State.tasks.forEach((task) => {
+		if (task.childTasks.length === 0) return;
+
+		task.childTasks = task.childTasks.map((childTaskUUID) => {
+			const childTask = State.tasks.get(childTaskUUID as UUID);
+			(childTask as Task).parent = task;
+			return childTask;
+		}) as Task[];
+	});
 
 	if (!localStorage.getItem("projects")) {
 		const projects: DutyPrototype[] = (<unknown>(
@@ -149,7 +173,7 @@ export { State };
 					document.querySelector("div.menu") as HTMLElement,
 				);
 
-				State.storedTasks.forEach((task) => {
+				State.tasks.forEach((task) => {
 					writeTaskToDOM(
 						task,
 						"append",
@@ -188,7 +212,7 @@ export { State };
 					document.querySelector("div.menu") as HTMLElement,
 				);
 
-				State.storedProjects.forEach((project) => {
+				State.projects.forEach((project) => {
 					writeProjectToDOM(
 						project,
 						"append",
@@ -222,14 +246,19 @@ export { State };
 				case "task": {
 					const serializedTask = new Task(duty);
 
-					State.storedTasks.set(serializedTask.uuid, serializedTask);
+					State.tasks.set(serializedTask.uuid, serializedTask);
 					break;
 				}
 				case "project": {
 					const serializedProject = new Project(duty);
 
-					State.storedProjects.set(serializedProject.uuid, serializedProject);
+					State.projects.set(serializedProject.uuid, serializedProject);
 					break;
+				}
+				case "note": {
+					const serializedNote = new Note(duty);
+
+					State.notes.set(serializedNote.uuid, serializedNote);
 				}
 			}
 		}

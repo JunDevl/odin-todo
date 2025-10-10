@@ -6,6 +6,9 @@
 		"description": "Do the laundry",
 		"deadline": 1591747200,
 		"priority": "medium",
+		"childTasks": [],
+		"notes": [],
+		"parent": null,
 		"completed": null
 	},
 	{
@@ -15,6 +18,9 @@
 		"description": "Do the dishes",
 		"deadline": 1591833600,
 		"priority": "medium",
+		"childTasks": [],
+		"notes": [],
+		"parent": null,
 		"completed": null
 	},
 	{
@@ -24,6 +30,9 @@
 		"description": "Kiss wife",
 		"deadline": null,
 		"priority": "high",
+		"childTasks": [],
+		"notes": ["a1ffd2a0-dc5b-4dd1-8876-3a481188fa70"],
+		"parent": null,
 		"completed": 1522886400
 	},
 	{
@@ -33,6 +42,9 @@
 		"description": "Pay the mechanic",
 		"deadline": 1563321600,
 		"priority": "low",
+		"childTasks": [],
+		"notes": [],
+		"parent": null,
 		"completed": 1563321600
 	},
 	{
@@ -42,8 +54,10 @@
 		"description": "Evolve as a human being",
 		"deadline": 33292598400,
 		"priority": "high",
-		"completed": null,
-		"parentProject": "216710da-d2f3-4a6a-96ff-60324bf88f15"
+		"childTasks": [],
+		"notes": [],
+		"parent": "216710da-d2f3-4a6a-96ff-60324bf88f15",
+		"completed": null
 	},
 	{
 		"uuid": "b87a1c93-9e0e-45a7-98be-937844032991",
@@ -52,6 +66,9 @@
 		"description": "Fill in your finance spreadsheet",
 		"deadline": null,
 		"priority": "medium",
+		"childTasks": [],
+		"notes": [],
+		"parent": null,
 		"completed": null
 	},
 	{
@@ -61,7 +78,9 @@
 		"description": "Reflect about life",
 		"deadline": null,
 		"priority": "medium",
-		"completed": 1417392000,
-		"parentProject": "216710da-d2f3-4a6a-96ff-60324bf88f15"
+		"childTasks": [],
+		"notes": [],
+		"parent": "216710da-d2f3-4a6a-96ff-60324bf88f15",
+		"completed": 1417392000
 	}
 ]

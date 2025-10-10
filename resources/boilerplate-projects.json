@@ -5,7 +5,9 @@
 		"title": "CS College",
 		"description": "Here is where i put everything that i have to do to finish college and get a Computer's Science degree.",
 		"deadline": null,
+		"priority": "high",
 		"childTasks": [],
+		"notes": [],
 		"completed": 0
 	},
 	{
@@ -14,7 +16,9 @@
 		"title": "Snake Game",
 		"description": "A spare project to practice my skills in C#.",
 		"deadline": null,
+		"priority": "medium",
 		"childTasks": [],
+		"notes": [],
 		"completed": 0
 	},
 	{
@@ -23,7 +27,9 @@
 		"title": "Art Course",
 		"description": "",
 		"deadline": null,
+		"priority": "medium",
 		"childTasks": [],
+		"notes": ["b18dc9fd-508a-477f-8be6-d02209899df2"],
 		"completed": 0
 	},
 	{
@@ -32,10 +38,12 @@
 		"title": "Self improvement",
 		"description": "I only got to live one life, might as well not throw it into the trash",
 		"deadline": 33292598400,
+		"priority": "very high",
 		"childTasks": [
 			"f8861a07-4428-4c7f-9caf-c18dcfa782b2",
 			"6aa46a82-a3b9-4f24-9f79-faec854a4d34"
 		],
+		"notes": [],
 		"completed": 1
 	}
 ]

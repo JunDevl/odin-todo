@@ -17,29 +17,50 @@ li:has(div.task) {
 
 div.task div.checkbox {
   --size: 1.1rem;
+  --padding: .3rem;
 
   position: absolute;
   display: none;
-  width: var(--size);
-  height: var(--size);
+  width: calc(var(--size) + calc(var(--padding) * 2));
+  height: calc(var(--size) + calc(var(--padding) * 2));
   left: 1.5rem;
-  top: calc(50% - (var(--size) / 2));
+  top: calc(50% - calc(calc(var(--size) + calc(var(--padding) * 2)) / 2));
+  padding: var(--padding);
+  border-radius: 5px;
   box-sizing: border-box;
+  transition: 200ms;
+}
+
+div.task div.checkbox:has(label:hover) {
+  background-color: oklch(from var(--base-border-color) calc(l + 0.1) c h / 20%);
+  transition: 200ms;
 }
 
 li:has(div.task):hover div.checkbox {
   display: flex;
 }
 
-div.task input[type="checkbox"] { width: 0; height: 0; display: none; pointer-events: none; }
+div.task div.checkbox * {
+  box-sizing: border-box;
+}
+
+div.task input[type="checkbox"] { 
+  width: 0; 
+  height: 0; 
+  display: none; 
+  pointer-events: none;
+  margin: 0;
+  padding: 0;
+}
 
 div.task input[type="checkbox"] + label {
+  position: relative;
   flex: 1;
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  background-color: tranparent;
-  border: 2px solid var(--base-border-color);
+  background-color: transparent;
+  border: 3px solid var(--base-border-color);
   border-radius: 2px;
   cursor: pointer;  
   transition: all 250ms cubic-bezier(.4,.0,.23,1);
@@ -51,17 +72,17 @@ div.task div.checkbox:has(input[type="checkbox"]:checked) {
 
 div.task input[type="checkbox"]:checked + label{
   background-color: var(--accent-color);
-  border: 2px solid var(--accent-color);
+  border: 3px solid var(--accent-color);
   animation: shrink-bounce 200ms cubic-bezier(.4,.0,.23,1);
 }
 
 div.task input[type="checkbox"]:checked + label:before{
   content: "";
   position: absolute;
-  top: .475em;
-  left: .2em;
-  border-right: 5px solid transparent;
-  border-bottom: 5px solid transparent;
+  top: 40%;
+  left: 15%;
+  border-right: 4px solid transparent;
+  border-bottom: 4px solid transparent;
   transform: rotate(45deg);
   transform-origin: 0% 100%;
   animation: checkbox-check 125ms 250ms cubic-bezier(.4,.0,.23,1) forwards;
@@ -70,14 +91,14 @@ div.task input[type="checkbox"]:checked + label:before{
 @keyframes shrink-bounce{
   0%{
     transform: scale(1);
-    background: tranparent;
+    background-color: transparent;
   }
   33%{    
     transform: scale(.85);
   }
   100%{
     transform: scale(1);
-    background: tranparent;
+    background-color: transparent;
     border: .52em solid var(--accent-color)
   }
 }
