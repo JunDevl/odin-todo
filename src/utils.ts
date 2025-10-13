@@ -83,7 +83,7 @@ export class Task implements DutyPrototype {
 
 		if (prototype) {
 			relatedNotes =
-				notes?.length !== 0
+				notes && notes.length !== 0
 					? ((<unknown>notes) as UUID[]).map((noteUUID) => {
 							return State.notes.get(noteUUID) as Note;
 						})
@@ -144,7 +144,7 @@ export class Project implements DutyPrototype {
 
 		if (prototype) {
 			relatedChildTasks =
-				childTasks?.length !== 0
+				childTasks && childTasks?.length !== 0
 					? ((<unknown>childTasks) as UUID[]).map((taskUUID) => {
 							return State.tasks.get(taskUUID) as Task;
 						})
@@ -157,7 +157,7 @@ export class Project implements DutyPrototype {
 			}
 
 			relatedNotes =
-				notes?.length !== 0
+				notes && notes.length !== 0
 					? ((<unknown>notes) as UUID[]).map((noteUUID) => {
 							return State.notes.get(noteUUID) as Note;
 						})

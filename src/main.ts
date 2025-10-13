@@ -160,12 +160,15 @@ export { State };
 					"button.add",
 				) as HTMLButtonElement;
 
-				document.removeEventListener("click", State.itemSelectionEvHandler);
+				document.body.removeEventListener(
+					"click",
+					State.itemSelectionEvHandler,
+				);
 
-				State.itemSelectionEvHandler = (e) =>
+				State.itemSelectionEvHandler = (e: MouseEvent) =>
 					handleItemSelection(e, "task", State.selection);
 
-				document.addEventListener("click", State.itemSelectionEvHandler);
+				document.body.addEventListener("click", State.itemSelectionEvHandler);
 
 				State.insertionEvHandler = (e: MouseEvent) =>
 					handleInsertion(e, "task");
@@ -200,12 +203,15 @@ export { State };
 					"button.add",
 				) as HTMLButtonElement;
 
-				document.removeEventListener("click", State.itemSelectionEvHandler);
+				document.body.removeEventListener(
+					"click",
+					State.itemSelectionEvHandler,
+				);
 
-				State.itemSelectionEvHandler = (e) =>
+				State.itemSelectionEvHandler = (e: MouseEvent) =>
 					handleItemSelection(e, "project", State.selection);
 
-				document.addEventListener("click", State.itemSelectionEvHandler);
+				document.body.addEventListener("click", State.itemSelectionEvHandler);
 
 				State.insertionEvHandler = (e: MouseEvent) =>
 					handleInsertion(e, "project");

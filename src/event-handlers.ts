@@ -1,21 +1,32 @@
-import { writeNewTaskFormToDOM } from "./components/tasks";
+import { writeNewTaskFormToDOM, writeTaskToDOM } from "./components/tasks";
 import { State } from "./main";
-import type { DutyType, SelectionState, UUID } from "./utils";
+import type { DutyPrototype, DutyType, SelectionState, UUID } from "./utils";
 import { Note, Project, Task } from "./utils";
 
 export function handleInsertion(e: MouseEvent, type: DutyType) {
-	const target = e.target as HTMLElement;
+	const addButton = e.target as HTMLElement;
 
 	let duty: Task | Project | Note;
 	let container: HTMLElement;
 	let form: HTMLFormElement;
 
-	target.removeEventListener("click", State.insertionEvHandler);
+	addButton.removeEventListener("click", State.insertionEvHandler);
 
 	const updateDuty = (e: SubmitEvent) => {
 		e.preventDefault();
-		const newDuty = Object.fromEntries(new FormData(form).entries());
-		console.dir(newDuty);
+		const newPrototype = (<unknown>(
+			Object.fromEntries(new FormData(form).entries())
+		)) as DutyPrototype;
+
+		console.log(newPrototype);
+
+		const instance = new Task(newPrototype);
+
+		State[`tasks`].set(instance.uuid, instance);
+
+		container.removeChild(form.parentElement as HTMLElement);
+
+		writeTaskToDOM(instance as Task, "insert", container);
 	};
 
 	const handleKeyPressed = (e: KeyboardEvent) => {
@@ -45,19 +56,8 @@ export function handleInsertion(e: MouseEvent, type: DutyType) {
 
 			form = document.querySelector("form#new-task") as HTMLFormElement;
 
-			const doneButton = document.querySelector(
-				`li[uuid="${duty.uuid}"] button.done`,
-			) as HTMLButtonElement;
-
-			doneButton.addEventListener("click", handleButtonClicked);
-
-			document.body.addEventListener("keypress", handleKeyPressed);
-
-			target.addEventListener("click", handleButtonClicked);
-
 			form.addEventListener("submit", updateDuty);
 
-			form = document.querySelector("form#new-task") as HTMLFormElement;
 			break;
 		}
 
@@ -71,6 +71,10 @@ export function handleInsertion(e: MouseEvent, type: DutyType) {
 			break;
 		}
 	}
+
+	document.body.addEventListener("keypress", handleKeyPressed);
+
+	addButton.addEventListener("click", handleButtonClicked);
 }
 
 export function handleItemSelection(
