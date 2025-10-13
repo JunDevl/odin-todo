@@ -173,7 +173,9 @@ export { State };
 				State.insertionEvHandler = (e: MouseEvent) =>
 					handleInsertion(e, "task");
 
-				addTaskButton.addEventListener("click", State.insertionEvHandler);
+				addTaskButton.addEventListener("click", State.insertionEvHandler, {
+					capture: true,
+				});
 
 				State.observer = generateObserver(
 					document.querySelector("div.menu") as HTMLElement,
@@ -181,9 +183,9 @@ export { State };
 
 				State.tasks.forEach((task) => {
 					writeTaskToDOM(
-						task,
 						"append",
 						document.querySelector<HTMLDivElement>("div#todo ul.container"),
+						task,
 					);
 					const checkbox = document.querySelector<HTMLInputElement>(
 						`div#todo ul.container li[uuid="${task.uuid}"] div.checkbox input[type="checkbox"]`,
@@ -216,7 +218,9 @@ export { State };
 				State.insertionEvHandler = (e: MouseEvent) =>
 					handleInsertion(e, "project");
 
-				addProjectButton.addEventListener("click", State.insertionEvHandler);
+				addProjectButton.addEventListener("click", State.insertionEvHandler, {
+					capture: true,
+				});
 
 				State.observer = generateObserver(
 					document.querySelector("div.menu") as HTMLElement,
@@ -224,9 +228,9 @@ export { State };
 
 				State.projects.forEach((project) => {
 					writeProjectToDOM(
-						project,
 						"append",
 						document.querySelector<HTMLDivElement>("div#projects ul.container"),
+						project,
 					);
 				});
 

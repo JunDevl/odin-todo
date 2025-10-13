@@ -4,55 +4,62 @@ import type { DutyPrototype, DutyType, SelectionState, UUID } from "./utils";
 import { Note, Project, Task } from "./utils";
 
 export function handleInsertion(e: MouseEvent, type: DutyType) {
-	const addButton = e.target as HTMLElement;
+	const addButton = e.currentTarget as HTMLElement;
 
-	let duty: Task | Project | Note;
 	let container: HTMLElement;
 	let form: HTMLFormElement;
 
-	addButton.removeEventListener("click", State.insertionEvHandler);
+	addButton.removeEventListener("click", State.insertionEvHandler, {
+		capture: true,
+	});
 
-	const updateDuty = (e: SubmitEvent) => {
+	function resetEventListeners() {
+		addButton.removeEventListener("click", handleButtonClicked, {
+			capture: true,
+		});
+		addButton.addEventListener("click", State.insertionEvHandler, {
+			capture: true,
+		});
+		document.body.removeEventListener("keypress", handleKeyPressed);
+	}
+
+	function updateDuty(e: SubmitEvent) {
 		e.preventDefault();
 		const newPrototype = (<unknown>(
 			Object.fromEntries(new FormData(form).entries())
 		)) as DutyPrototype;
 
-		console.log(newPrototype);
-
 		const instance = new Task(newPrototype);
 
-		State[`tasks`].set(instance.uuid, instance);
+		State.tasks.set(instance.uuid, instance);
 
 		container.removeChild(form.parentElement as HTMLElement);
 
-		writeTaskToDOM(instance as Task, "insert", container);
-	};
+		writeTaskToDOM("insert", container, instance as Task);
 
-	const handleKeyPressed = (e: KeyboardEvent) => {
+		resetEventListeners();
+	}
+
+	function handleKeyPressed(e: KeyboardEvent) {
 		if (e.key === "Enter") {
 			form.dispatchEvent(new Event("submit"));
-			document.body.removeEventListener("keypress", handleKeyPressed);
+			resetEventListeners();
 			return;
 		}
-	};
+	}
 
-	const handleButtonClicked = (e: MouseEvent) => {
+	function handleButtonClicked(e: MouseEvent) {
 		form.dispatchEvent(new Event("submit"));
-		(e.target as HTMLButtonElement).removeEventListener(
-			"click",
-			handleButtonClicked,
-		);
-	};
+		resetEventListeners();
+	}
 
 	switch (type) {
 		case "task": {
-			duty = new Task();
 			container = document.querySelector(
 				"div#todo ul.container",
 			) as HTMLElement;
 
-			writeNewTaskFormToDOM(duty, "insert", container);
+			writeNewTaskFormToDOM("insert", container);
 
 			form = document.querySelector("form#new-task") as HTMLFormElement;
 
@@ -62,19 +69,19 @@ export function handleInsertion(e: MouseEvent, type: DutyType) {
 		}
 
 		case "project": {
-			duty = new Project();
 			break;
 		}
 
 		case "note": {
-			duty = new Note();
 			break;
 		}
 	}
 
 	document.body.addEventListener("keypress", handleKeyPressed);
 
-	addButton.addEventListener("click", handleButtonClicked);
+	addButton.addEventListener("click", handleButtonClicked, {
+		capture: true,
+	});
 }
 
 export function handleItemSelection(

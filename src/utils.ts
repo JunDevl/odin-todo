@@ -1,3 +1,4 @@
+import { intlFormat } from "date-fns";
 import { State } from "./main";
 
 export type Prettify<T> = {
@@ -99,9 +100,13 @@ export class Task implements DutyPrototype {
 		this.title = title ? title : "";
 		this.description = description ? description : "";
 		this.priority = priority ? priority : defaultPriority;
+
 		this.deadline = deadline
-			? new Date(((<unknown>deadline) as number) * 1000)
+			? typeof deadline === "number"
+				? new Date(deadline * 1000)
+				: new Date(deadline)
 			: null;
+
 		this.parent = parent ? parent : null;
 		this.childTasks = childTasks ? childTasks : [];
 		this.notes = relatedNotes;
@@ -172,14 +177,18 @@ export class Project implements DutyPrototype {
 
 		this.childTasks = relatedChildTasks;
 		this.title = title ? title : "";
+
+		this.deadline = deadline
+			? typeof deadline === "number"
+				? new Date(deadline * 1000)
+				: new Date(deadline)
+			: null;
 		this.description = description ? description : "";
+
 		this.priority = priority ? priority : defaultPriority;
 		this.notes = relatedNotes;
 
 		this.completed = completed ? (completed as number) : 0;
-		this.deadline = deadline
-			? new Date(((<unknown>deadline) as number) * 1000)
-			: null;
 
 		this.uuid = uuid ? uuid : crypto.randomUUID();
 	}
@@ -208,12 +217,22 @@ export function generateDOMWriteable<T extends Task | Project>(
 	HTMLComponent: string,
 ) {
 	return (
-		object: T,
 		operation: Operations,
 		targetParent: HTMLElement | null,
+		object?: T,
 	) => {
 		if (!targetParent)
 			throw new Error("Target element must be a valid HTML element container.");
+
+		if (!object) {
+			if (operation === "insert") {
+				targetParent.insertAdjacentHTML("afterbegin", HTMLComponent);
+				return;
+			}
+
+			targetParent.insertAdjacentHTML("beforeend", HTMLComponent);
+			return;
+		}
 
 		const sanitizeHTML = (): string => {
 			let sanitized = HTMLComponent;
@@ -241,7 +260,7 @@ export function generateDOMWriteable<T extends Task | Project>(
 
 				if (valueIsDate) {
 					const userLang = navigator.language || document.documentElement.lang;
-					formattedValue = new Intl.DateTimeFormat(userLang).format(value);
+					formattedValue = intlFormat(value, { locale: userLang });
 				} else {
 					formattedValue = String(value).replace(
 						HTMLLikeSyntax,
