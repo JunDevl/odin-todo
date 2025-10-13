@@ -1,0 +1,19 @@
+<li uuid="{obj.uuid}" tabindex="0">
+  <form class="task" id="new-task">
+    <div class="text">
+      <input type="text" name="title" class="title" placeholder="Task's Title">
+      <input type="text" name="description" class="description" placeholder="Task's Description">
+      <select name="priority" id="priority" class="priority">
+        <option value="low">Low</option>
+        <option value="medium" selected>Medium</option>
+        <option value="high">High</option>
+        <option value="very high">Very high</option>
+      </select>
+    </div>
+    <p class="due">
+      Due:
+      <input type="date" name="deadline" class="deadline">
+    </p>
+    <button class="done">Done</button>
+  </form>
+</li>

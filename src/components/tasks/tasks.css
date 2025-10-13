@@ -10,118 +10,200 @@ div.task {
 
 /*###   CUSTOM STYLING FOR CHECKBOX INTERACTION   ###*/
 
-li:has(div.task) {
-  position: relative;
-  z-index: 0;
-}
-
-div.task div.checkbox {
-  --size: 1.1rem;
+div.task > div.checkbox {
+  --size: 1.6rem;
   --padding: .3rem;
 
   position: absolute;
   display: none;
-  width: calc(var(--size) + calc(var(--padding) * 2));
-  height: calc(var(--size) + calc(var(--padding) * 2));
+  width: calc(var(--size) + (var(--padding) * 2));
+  height: calc(var(--size) + (var(--padding) * 2));
   left: 1.5rem;
-  top: calc(50% - calc(calc(var(--size) + calc(var(--padding) * 2)) / 2));
+  top: calc(50% - ((var(--size) + (var(--padding) * 2)) / 2));
   padding: var(--padding);
   border-radius: 5px;
   box-sizing: border-box;
-  transition: 200ms;
+  transition: background-color 200ms;
+
+  &:hover {
+    background-color: oklch(from var(--base-border-color) calc(l + 0.1) c h / 20%);
+  }
+
+  & > input[type="checkbox"] { 
+    display: none;
+  }
+
+  & > input[type="checkbox"] + label {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+
+    & > svg {
+      width: 100%;
+      height: 100%;
+      transition: all 150ms cubic-bezier(.4, .0, .23, 1);
+      pointer-events: none;
+    }
+
+    &:active > svg {
+      width: 90%;
+      height: 90%;
+    }
+
+    & > svg > rect.border {
+      transition: stroke 350ms;
+      stroke: var(--base-border-color);
+    }
+
+    & > svg > path.mark {
+      stroke-width: 14;
+      fill: none;
+      transition: all 350ms;
+      transition-delay: 150ms cubic-bezier(.4, .0, .23, 1);
+      stroke: var(--base-color-2);
+      stroke-dasharray: 0, 1000;
+    }
+
+    & > svg > path.fill {
+      stroke-width: 5;
+      fill: var(--base-border-color);
+      transition: all 350ms cubic-bezier(.4, .0, .23, 1);
+      stroke: var(--base-border-color);
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  }
+
+  & > input[type="checkbox"]:checked + label > svg {
+    animation: shrink-bounce 350ms cubic-bezier(.4, .0, .23, 1);
+
+    & > rect.border {
+      stroke: var(--accent-color);
+    }
+
+    & > path.mark {
+      stroke-dasharray: 70, 1000;
+    }
+
+    & > path.fill {
+      fill: var(--accent-color);
+      stroke: var(--accent-color);
+      animation: fill-shrink 350ms cubic-bezier(.4, .0, .23, 1);
+      d: path("M 12, 12 l 76, 0 l 0, 76 l -76, 0 Z M 48, 48 l 4, 0 l 0, 4 l -4, 0 Z");
+      fill-rule: nonzero;
+    }
+  }
+
 }
 
-div.task div.checkbox:has(label:hover) {
-  background-color: oklch(from var(--base-border-color) calc(l + 0.1) c h / 20%);
-  transition: 200ms;
-}
-
-li:has(div.task):hover div.checkbox {
-  display: flex;
-}
-
-div.task div.checkbox * {
-  box-sizing: border-box;
-}
-
-div.task input[type="checkbox"] { 
-  width: 0; 
-  height: 0; 
-  display: none; 
-  pointer-events: none;
-  margin: 0;
-  padding: 0;
-}
-
-div.task input[type="checkbox"] + label {
+li:has(div.task) {
   position: relative;
-  flex: 1;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  background-color: transparent;
-  border: 3px solid var(--base-border-color);
-  border-radius: 2px;
-  cursor: pointer;  
-  transition: all 250ms cubic-bezier(.4,.0,.23,1), transform 100ms;
+  z-index: 0;
+
+  &:hover > div.task > :is(div.checkbox, div.options), div.checkbox:has(input[type="checkbox"]:checked) {
+    display: inline-flex;
+  }
 }
 
-div.task input[type="checkbox"] + label:active {
-  transform: scale(.93);
+@keyframes fill-shrink {
+  from {
+    d: path("M 12, 12 l 76, 0 l 0, 76 l -76, 0 Z M 12, 12 l 76, 0 l 0, 76 l -76, 0 Z");
+    fill-rule: evenodd;
+  }
+
+  to {
+    d: path("M 12, 12 l 76, 0 l 0, 76 l -76, 0 Z M 48, 48 l 4, 0 l 0, 4 l -4, 0 Z");
+    fill-rule: evenodd;
+  }
 }
 
-div.task div.checkbox:has(input[type="checkbox"]:checked) {
-  display: inline-flex;
+@keyframes shrink-bounce {
+  0% {
+    width: 100%;
+    height: 100%;
+  }
+
+  33% {
+    width: 85%;
+    height: 85%;
+  }
+
+  100% {
+    width: 100%;
+    height: 100%;
+  }
 }
 
-div.task input[type="checkbox"]:checked + label{
-  background-color: var(--accent-color);
-  border: 3px solid var(--accent-color);
-  animation: shrink-bounce 200ms cubic-bezier(.4,.0,.23,1);
-}
+/*###  ###*/
 
-div.task input[type="checkbox"]:checked + label:before{
-  content: "";
+div.task > div.options {
+  --size: 1.6rem;
+  --padding: .3rem;
+  --gap-size: 1rem;
+  --element-count: 2;
+
   position: absolute;
-  top: 40%;
-  left: 15%;
-  border-right: 4px solid transparent;
-  border-bottom: 4px solid transparent;
-  transform: rotate(45deg);
-  transform-origin: 0% 100%;
-  animation: checkbox-check 125ms 250ms cubic-bezier(.4,.0,.23,1) forwards;
-}
+  display: none;
+  gap: var(--gap-size);
+  width: calc((var(--size) + var(--gap-size) + (var(--padding) * 2)) * var(--element-count));
+  height: calc(var(--size) + var(--gap-size) + (var(--padding) * 2));
+  right: 1.5rem;
+  top: calc(50% - ((var(--size) + var(--gap-size) + (var(--padding) * 2)) / 2));
+  padding: var(--padding);
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: space-between;
 
-@keyframes shrink-bounce{
-  0%{
-    transform: scale(1);
-    background-color: transparent;
+  & > button {
+    transition: background-color 200ms;
+    background-color: inherit;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+
+    &:hover {
+      background-color: oklch(from var(--base-border-color) calc(l + 0.1) c   h / 20%);
+    }
+
+    & > svg {
+      width: 100%;
+      height: 100%;
+      transition: all 150ms cubic-bezier(.4, .0, .23, 1);
+      pointer-events: none;
+    }
+
+    &:active > svg {
+      width: 90%;
+      height: 90%;
+    }
   }
-  33%{    
-    transform: scale(.85);
+
+  & > button.expand > svg * {
+    stroke: var(--base-border-color);
   }
-  100%{
-    transform: scale(1);
-    background-color: transparent;
-    border: .52em solid var(--accent-color)
+
+  & > button.delete > svg > * {
+    transition-duration: 200ms;
   }
-}
-@keyframes checkbox-check{
-  0%{
-    width: 0;
-    height: 0;
-    border-color: var(--base-color-2);
-    transform: translate3d(0,0,0) rotate(45deg);
+
+  & > button.delete > svg > *:not(path.fill) {
+    fill: var(--semantic-error-color);
   }
-  33%{
-    width: .2em;
-    height: 0;
-    transform: translate3d(0,0,0) rotate(45deg);
+
+  & > button.delete:hover > svg > path.inner {
+    transition: 200ms fill; 
+    fill: var(--base-color-2);
   }
-  100%{    
-    width: .2em;
-    height: .5em;    
-    border-color: var(--base-color-2);
-    transform: translate3d(0,-.5em,0) rotate(45deg);
+
+  & > button.delete:hover > svg > path.fill {
+    transition: 200ms; 
+    fill: var(--semantic-error-color);
+    stroke: var(--semantic-error-color);
   }
 }

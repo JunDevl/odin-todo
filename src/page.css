@@ -13,6 +13,8 @@
   --border-dark-color: oklch(60% 0.01 var(--primary-hue));
 
   --accent-color: oklch(53% 0.25 var(--primary-hue));
+
+  --semantic-error-color: oklch(50% 0.18 32);
   
   --todo-width: calc(50% + 1rem);
 

@@ -15,8 +15,9 @@ import ConfigComponent from "./components/home-pages/config-page.html";
 import ProjectsComponent from "./components/home-pages/projects-page.html";
 import TodoComponent from "./components/home-pages/tasks-page.html";
 import TrackerComponent from "./components/home-pages/tracker-page.html";
+
 import writeProjectToDOM from "./components/projects/index";
-import writeTaskToDOM from "./components/tasks/index";
+import { writeTaskToDOM } from "./components/tasks/index";
 
 import { handleInsertion, handleItemSelection } from "./event-handlers";
 
@@ -36,15 +37,16 @@ const State: AppState = {
 		origin: null,
 		selected: new Set(),
 	},
-	itemSelectionEvHandler: (e: MouseEvent) => {},
+
+	itemSelectionEvHandler: (e: MouseEvent) =>
+		handleItemSelection(e, "task", State.selection),
+
+	insertionEvHandler: (e: MouseEvent) => handleInsertion(e, "task"),
 };
 
 export { State };
 
 (() => {
-	State.itemSelectionEvHandler = (e: MouseEvent) =>
-		handleItemSelection(e, "task", State.selection);
-
 	const sideOptions = document.querySelectorAll("nav.sidebar ul li button");
 	sideOptions.forEach((element) => {
 		element.addEventListener("click", (e) => {
@@ -154,8 +156,9 @@ export { State };
 			case Page.Tasks: {
 				newContent.innerHTML = TodoComponent;
 
-				const addTaskButton =
-					document.querySelector<HTMLButtonElement>("button.add");
+				const addTaskButton = document.querySelector<HTMLButtonElement>(
+					"button.add",
+				) as HTMLButtonElement;
 
 				document.removeEventListener("click", State.itemSelectionEvHandler);
 
@@ -164,10 +167,10 @@ export { State };
 
 				document.addEventListener("click", State.itemSelectionEvHandler);
 
-				if (addTaskButton)
-					addTaskButton.addEventListener("click", (e) =>
-						handleInsertion(e, "task", () => writeTaskToDOM),
-					);
+				State.insertionEvHandler = (e: MouseEvent) =>
+					handleInsertion(e, "task");
+
+				addTaskButton.addEventListener("click", State.insertionEvHandler);
 
 				State.observer = generateObserver(
 					document.querySelector("div.menu") as HTMLElement,
@@ -193,8 +196,9 @@ export { State };
 				newContent.setAttribute("class", "content");
 				newContent.innerHTML = ProjectsComponent;
 
-				const addProjectButton =
-					document.querySelector<HTMLButtonElement>("button.add");
+				const addProjectButton = document.querySelector<HTMLButtonElement>(
+					"button.add",
+				) as HTMLButtonElement;
 
 				document.removeEventListener("click", State.itemSelectionEvHandler);
 
@@ -203,10 +207,10 @@ export { State };
 
 				document.addEventListener("click", State.itemSelectionEvHandler);
 
-				if (addProjectButton)
-					addProjectButton.addEventListener("click", (e) =>
-						handleInsertion(e, "project", () => writeProjectToDOM),
-					);
+				State.insertionEvHandler = (e: MouseEvent) =>
+					handleInsertion(e, "project");
+
+				addProjectButton.addEventListener("click", State.insertionEvHandler);
 
 				State.observer = generateObserver(
 					document.querySelector("div.menu") as HTMLElement,

@@ -1,22 +1,76 @@
+import { writeNewTaskFormToDOM } from "./components/tasks";
 import { State } from "./main";
-import type {
-	DutyType,
-	generateDOMWriteable,
-	Project,
-	SelectionState,
-	Task,
-	UUID,
-} from "./utils";
+import type { DutyType, SelectionState, UUID } from "./utils";
+import { Note, Project, Task } from "./utils";
 
-export function handleInsertion(
-	e: Event,
-	type: DutyType,
-	writeToDOM: ReturnType<typeof generateDOMWriteable>,
-) {
-	const ev = e as MouseEvent;
-	//const test = type === "task" ? new Task() : new Project([]);
+export function handleInsertion(e: MouseEvent, type: DutyType) {
+	const target = e.target as HTMLElement;
 
-	//writeToDOM(test, "insert", document.querySelector<HTMLDivElement>("div#todo ul.container"));
+	let duty: Task | Project | Note;
+	let container: HTMLElement;
+	let form: HTMLFormElement;
+
+	target.removeEventListener("click", State.insertionEvHandler);
+
+	const updateDuty = (e: SubmitEvent) => {
+		e.preventDefault();
+		const newDuty = Object.fromEntries(new FormData(form).entries());
+		console.dir(newDuty);
+	};
+
+	const handleKeyPressed = (e: KeyboardEvent) => {
+		if (e.key === "Enter") {
+			form.dispatchEvent(new Event("submit"));
+			document.body.removeEventListener("keypress", handleKeyPressed);
+			return;
+		}
+	};
+
+	const handleButtonClicked = (e: MouseEvent) => {
+		form.dispatchEvent(new Event("submit"));
+		(e.target as HTMLButtonElement).removeEventListener(
+			"click",
+			handleButtonClicked,
+		);
+	};
+
+	switch (type) {
+		case "task": {
+			duty = new Task();
+			container = document.querySelector(
+				"div#todo ul.container",
+			) as HTMLElement;
+
+			writeNewTaskFormToDOM(duty, "insert", container);
+
+			form = document.querySelector("form#new-task") as HTMLFormElement;
+
+			const doneButton = document.querySelector(
+				`li[uuid="${duty.uuid}"] button.done`,
+			) as HTMLButtonElement;
+
+			doneButton.addEventListener("click", handleButtonClicked);
+
+			document.body.addEventListener("keypress", handleKeyPressed);
+
+			target.addEventListener("click", handleButtonClicked);
+
+			form.addEventListener("submit", updateDuty);
+
+			form = document.querySelector("form#new-task") as HTMLFormElement;
+			break;
+		}
+
+		case "project": {
+			duty = new Project();
+			break;
+		}
+
+		case "note": {
+			duty = new Note();
+			break;
+		}
+	}
 }
 
 export function handleItemSelection(
@@ -30,7 +84,6 @@ export function handleItemSelection(
 	const targetIsLI: boolean = !!target.getAttribute("uuid");
 	const targetIsChildOfLI: boolean = !!target.matches(`div.${type}`);
 	const isTaskCheckbox = !!target.matches("div.task div.checkbox label");
-	const isTaskInputCheckbox = !!target.matches("div.task div.checkbox input");
 
 	if (targetIsLI) targetUUID = target.getAttribute("uuid") as UUID;
 
@@ -41,27 +94,17 @@ export function handleItemSelection(
 	}
 
 	if (isTaskCheckbox) {
-		const parent = target.parentElement?.parentElement
-			?.parentElement as HTMLElement;
+		const parent = document.querySelector(
+			`li[uuid="${target.getAttribute("for")}"]`,
+		) as HTMLElement;
 		targetUUID = parent.getAttribute("uuid") as UUID;
 		target = parent;
 
-		const taskWasChecked = !!(
-			(e.target as HTMLElement).parentElement?.getAttribute("completed") !==
-			"null"
-		);
-		const completedOn = !taskWasChecked ? new Date() : null;
-
-		(e.target as HTMLElement).parentElement?.setAttribute(
-			"completed",
-			String(completedOn),
-		);
-
 		const task = State.tasks.get(targetUUID) as Task;
-		task.completed = completedOn;
+		const taskWasChecked = task.completed;
+		const completed = !taskWasChecked ? new Date() : null;
+		task.completed = completed;
 	}
-
-	if (isTaskInputCheckbox) return;
 
 	const divIdContext = type === "task" ? "todo" : "projects";
 

@@ -34,7 +34,9 @@ export interface AppState {
 	observer: IntersectionObserver | null;
 
 	selection: SelectionState;
+
 	itemSelectionEvHandler: (e: MouseEvent) => void;
+	insertionEvHandler: (e: MouseEvent) => void;
 }
 
 export interface DutyPrototype {
@@ -64,7 +66,7 @@ export class Task implements DutyPrototype {
 	notes: Note[];
 	parent: UUID | Project | Task | null;
 
-	constructor(prototype: DutyPrototype) {
+	constructor(prototype?: DutyPrototype) {
 		const {
 			title,
 			description,
@@ -75,31 +77,39 @@ export class Task implements DutyPrototype {
 			parent,
 			completed,
 			uuid,
-		} = prototype;
+		} = prototype ? prototype : {};
 
-		const relatedNotes =
-			notes?.length !== 0
-				? ((<unknown>notes) as UUID[]).map((noteUUID) => {
-						return State.notes.get(noteUUID) as Note;
-					})
-				: [];
+		let relatedNotes: Note[] = [];
 
-		if (relatedNotes.length !== 0) {
-			relatedNotes.forEach((note) => {
-				note.parent = this;
-			});
+		if (prototype) {
+			relatedNotes =
+				notes?.length !== 0
+					? ((<unknown>notes) as UUID[]).map((noteUUID) => {
+							return State.notes.get(noteUUID) as Note;
+						})
+					: [];
+
+			if (relatedNotes.length !== 0) {
+				relatedNotes.forEach((note) => {
+					note.parent = this;
+				});
+			}
 		}
 
 		this.title = title ? title : "";
 		this.description = description ? description : "";
 		this.priority = priority ? priority : defaultPriority;
-		this.deadline = deadline ? deadline : null;
+		this.deadline = deadline
+			? new Date(((<unknown>deadline) as number) * 1000)
+			: null;
 		this.parent = parent ? parent : null;
 		this.childTasks = childTasks ? childTasks : [];
 		this.notes = relatedNotes;
 
 		if (childTasks?.length === 0)
-			this.completed = completed ? new Date(completed) : null;
+			this.completed = completed
+				? new Date(((<unknown>completed) as number) * 1000)
+				: null;
 		else this.completed = completed ? completed : 0;
 
 		this.uuid = uuid ? uuid : crypto.randomUUID();
@@ -117,7 +127,7 @@ export class Project implements DutyPrototype {
 	childTasks: Task[];
 	notes: Note[];
 
-	constructor(prototype: DutyPrototype) {
+	constructor(prototype?: DutyPrototype) {
 		const {
 			childTasks,
 			title,
@@ -127,32 +137,37 @@ export class Project implements DutyPrototype {
 			notes,
 			uuid,
 			completed,
-		} = prototype;
+		} = prototype ? prototype : {};
 
-		const relatedChildTasks =
-			childTasks?.length !== 0
-				? ((<unknown>childTasks) as UUID[]).map((taskUUID) => {
-						return State.tasks.get(taskUUID) as Task;
-					})
-				: [];
+		let relatedChildTasks: Task[] = [];
+		let relatedNotes: Note[] = [];
 
-		if (relatedChildTasks.length !== 0) {
-			relatedChildTasks.forEach((task) => {
-				task.parent = this;
-			});
-		}
+		if (prototype) {
+			relatedChildTasks =
+				childTasks?.length !== 0
+					? ((<unknown>childTasks) as UUID[]).map((taskUUID) => {
+							return State.tasks.get(taskUUID) as Task;
+						})
+					: [];
 
-		const relatedNotes =
-			notes?.length !== 0
-				? ((<unknown>notes) as UUID[]).map((noteUUID) => {
-						return State.notes.get(noteUUID) as Note;
-					})
-				: [];
+			if (relatedChildTasks.length !== 0) {
+				relatedChildTasks.forEach((task) => {
+					task.parent = this;
+				});
+			}
 
-		if (relatedNotes.length !== 0) {
-			relatedNotes.forEach((note) => {
-				note.parent = this;
-			});
+			relatedNotes =
+				notes?.length !== 0
+					? ((<unknown>notes) as UUID[]).map((noteUUID) => {
+							return State.notes.get(noteUUID) as Note;
+						})
+					: [];
+
+			if (relatedNotes.length !== 0) {
+				relatedNotes.forEach((note) => {
+					note.parent = this;
+				});
+			}
 		}
 
 		this.childTasks = relatedChildTasks;
@@ -162,7 +177,9 @@ export class Project implements DutyPrototype {
 		this.notes = relatedNotes;
 
 		this.completed = completed ? (completed as number) : 0;
-		this.deadline = deadline ? new Date(deadline) : null;
+		this.deadline = deadline
+			? new Date(((<unknown>deadline) as number) * 1000)
+			: null;
 
 		this.uuid = uuid ? uuid : crypto.randomUUID();
 	}
@@ -175,8 +192,8 @@ export class Note implements DutyPrototype {
 	description: string;
 	parent: UUID | Task | Project | null;
 
-	constructor(prototype: DutyPrototype) {
-		const { title, description, parent, uuid } = prototype;
+	constructor(prototype?: DutyPrototype) {
+		const { title, description, parent, uuid } = prototype ? prototype : {};
 
 		this.title = title ? title : "";
 		this.description = description ? description : "";
@@ -204,23 +221,37 @@ export function generateDOMWriteable<T extends Task | Project>(
 			Object.entries(object).forEach((entry) => {
 				const [key, value] = entry;
 
-				const HTMLLikeSyntax = /<|>/g;
-
 				const replaceWith: Record<string, string> = {
 					"<": "&lt;",
 					">": "&gt;",
 				};
 
-				const HTMLRemoved = String(value).replace(
-					HTMLLikeSyntax,
-					(match: string) => {
-						return replaceWith[match];
-					},
-				);
+				const propertyAccessOperation: RegExp = RegExp(`{obj.${key}}`, "g");
 
-				const propertyAccessOperation = RegExp(`{obj.${key}}`, "g");
+				if (!value) {
+					sanitized = sanitized.replace(propertyAccessOperation, "Not defined");
+					return;
+				}
 
-				sanitized = sanitized.replace(propertyAccessOperation, HTMLRemoved);
+				let formattedValue: string;
+
+				const HTMLLikeSyntax: RegExp = /<|>/g;
+
+				const valueIsDate = value instanceof Date;
+
+				if (valueIsDate) {
+					const userLang = navigator.language || document.documentElement.lang;
+					formattedValue = new Intl.DateTimeFormat(userLang).format(value);
+				} else {
+					formattedValue = String(value).replace(
+						HTMLLikeSyntax,
+						(match: string) => {
+							return replaceWith[match];
+						},
+					);
+				}
+
+				sanitized = sanitized.replace(propertyAccessOperation, formattedValue);
 			});
 
 			return sanitized;
