@@ -19,7 +19,7 @@ import TrackerComponent from "./components/home-pages/tracker-page.html";
 import writeProjectToDOM from "./components/projects/index";
 import { writeTaskToDOM } from "./components/tasks/index";
 
-import { handleInsertion, handleItemSelection } from "./event-handlers";
+import { handleInsertion, handleClick } from "./event-handlers";
 
 import type { AppState, DutyPrototype, UUID } from "./utils";
 import { Note, Page, Project, Task } from "./utils";
@@ -38,8 +38,8 @@ const State: AppState = {
 		selected: new Set(),
 	},
 
-	itemSelectionEvHandler: (e: MouseEvent) =>
-		handleItemSelection(e, "task", State.selection),
+	globalClickEvHandler: (e: MouseEvent) =>
+		handleClick(e, "task", State.selection),
 
 	insertionEvHandler: (e: MouseEvent) => handleInsertion(e, "task"),
 };
@@ -160,15 +160,12 @@ export { State };
 					"button.add",
 				) as HTMLButtonElement;
 
-				document.body.removeEventListener(
-					"click",
-					State.itemSelectionEvHandler,
-				);
+				document.body.removeEventListener("click", State.globalClickEvHandler);
 
-				State.itemSelectionEvHandler = (e: MouseEvent) =>
-					handleItemSelection(e, "task", State.selection);
+				State.globalClickEvHandler = (e: MouseEvent) =>
+					handleClick(e, "task", State.selection);
 
-				document.body.addEventListener("click", State.itemSelectionEvHandler);
+				document.body.addEventListener("click", State.globalClickEvHandler);
 
 				State.insertionEvHandler = (e: MouseEvent) =>
 					handleInsertion(e, "task");
@@ -205,15 +202,12 @@ export { State };
 					"button.add",
 				) as HTMLButtonElement;
 
-				document.body.removeEventListener(
-					"click",
-					State.itemSelectionEvHandler,
-				);
+				document.body.removeEventListener("click", State.globalClickEvHandler);
 
-				State.itemSelectionEvHandler = (e: MouseEvent) =>
-					handleItemSelection(e, "project", State.selection);
+				State.globalClickEvHandler = (e: MouseEvent) =>
+					handleClick(e, "project", State.selection);
 
-				document.body.addEventListener("click", State.itemSelectionEvHandler);
+				document.body.addEventListener("click", State.globalClickEvHandler);
 
 				State.insertionEvHandler = (e: MouseEvent) =>
 					handleInsertion(e, "project");

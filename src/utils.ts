@@ -36,7 +36,7 @@ export interface AppState {
 
 	selection: SelectionState;
 
-	itemSelectionEvHandler: (e: MouseEvent) => void;
+	globalClickEvHandler: (e: MouseEvent) => void;
 	insertionEvHandler: (e: MouseEvent) => void;
 }
 
