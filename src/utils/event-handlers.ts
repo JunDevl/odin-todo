@@ -34,11 +34,7 @@ export function handleInsertion(e: MouseEvent, type: DutyType) {
 
 		const instance = new d(newPrototype);
 
-<<<<<<< HEAD:src/utils/event-handlers.ts
-		State[`${type}s`].set(instance.uuid as UUID, instance as never);
-=======
 		State[`${type}s`].set(instance.uuid, instance as never);
->>>>>>> 60fc6902ac9c22f127aff5d1c320e781794c28c5:src/event-handlers.ts
 
 		container.removeChild(form.parentElement as HTMLElement);
 

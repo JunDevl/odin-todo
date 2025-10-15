@@ -4,23 +4,6 @@ import boilerplateTasks from "../../resources/boilerplate-tasks.json";
 import { State } from "../main";
 import type { DutyPrototype, DutyType, Priority, UUID } from "./types";
 
-function getRelatedInstances<T extends Note | Task>(
-	ref: Task | Project,
-	uuid: UUID[] | UUID | null,
-): T[] {
-	if (!Array.isArray(uuid) || uuid.length === 0) return [];
-
-	const childInstances = uuid.map((uuid) => State[`${ref.type}s`].get(uuid));
-
-	childInstances.forEach((childInstance) => {
-		if (childInstance.parent === ref) return;
-
-		childInstance.parent = ref;
-	});
-
-	return childInstances;
-}
-
 export class Task implements DutyPrototype {
 	readonly uuid: UUID;
 	readonly type = "task";
@@ -29,8 +12,8 @@ export class Task implements DutyPrototype {
 	priority: Priority;
 	deadline: Date | null;
 	completed: Date | number | null;
-	childTasks: UUID[] | Task[];
-	notes: Note[];
+	childTasks: Task[] | UUID[];
+	notes: Note[] | UUID[];
 	parent: UUID | Project | Task | null;
 
 	constructor(prototype?: DutyPrototype) {
@@ -46,11 +29,6 @@ export class Task implements DutyPrototype {
 			uuid,
 		} = prototype ? prototype : {};
 
-		let relatedNotes: Note[] = [];
-
-		if (prototype && prototype.notes?.length !== 0)
-			relatedNotes = getRelatedInstances<Note>(this, notes as UUID[]);
-
 		this.title = title ? title : "";
 		this.description = description ? description : "";
 		this.priority = priority ? priority : State.defaultDutyPriority;
@@ -63,7 +41,7 @@ export class Task implements DutyPrototype {
 
 		this.parent = parent ? parent : null;
 		this.childTasks = childTasks ? childTasks : [];
-		this.notes = relatedNotes;
+		this.notes = notes ? notes : [];
 
 		if (childTasks?.length === 0)
 			this.completed = completed
@@ -83,8 +61,8 @@ export class Project implements DutyPrototype {
 	priority: Priority;
 	deadline: Date | null;
 	completed: number;
-	childTasks: Task[];
-	notes: Note[];
+	childTasks: Task[] | UUID[];
+	notes: Note[] | UUID[];
 
 	constructor(prototype?: DutyPrototype) {
 		const {
@@ -98,16 +76,7 @@ export class Project implements DutyPrototype {
 			completed,
 		} = prototype ? prototype : {};
 
-		let relatedTasks: Task[] = [];
-		let relatedNotes: Note[] = [];
-
-		if (prototype && childTasks?.length !== 0)
-			relatedTasks = getRelatedInstances<Task>(this, childTasks as UUID[]);
-
-		if (prototype && notes?.length !== 0)
-			relatedNotes = getRelatedInstances<Note>(this, notes as UUID[]);
-
-		this.childTasks = relatedTasks;
+		this.childTasks = childTasks ? childTasks : [];
 		this.title = title ? title : "";
 
 		this.deadline = deadline
@@ -118,7 +87,7 @@ export class Project implements DutyPrototype {
 		this.description = description ? description : "";
 
 		this.priority = priority ? priority : State.defaultDutyPriority;
-		this.notes = relatedNotes;
+		this.notes = notes ? notes : [];
 
 		this.completed = completed ? (completed as number) : 0;
 
@@ -156,33 +125,65 @@ export class EntitiesMap<V extends DutyPrototype> extends Map {
 		this.#deserialize(stored ? JSON.parse(stored) : null, type);
 	}
 
-	#deserialize(object: DutyPrototype[] | null, type: DutyType) {
-		const iterate = <T extends V>(
-			validObj: DutyPrototype[],
+	readonly updateRelatedInstances = (() => {
+		let called = false;
+		return <T extends Note | Task>(
+			ref: Task | Project,
+			targetUuid: UUID[] | UUID | null,
+		) => {
+			if (called)
+				throw new Error(
+					"The function that updates entities relations within javascript can only be called once.",
+				);
+
+			called = true;
+
+			if (!Array.isArray(targetUuid) || targetUuid.length === 0) return [];
+
+			const childInstances = targetUuid.map((targetUuid) =>
+				State[`${ref.type}s`].get(targetUuid),
+			);
+
+			childInstances.forEach((childInstance) => {
+				if (childInstance.parent === ref) return;
+
+				childInstance.parent = ref;
+			});
+
+			return childInstances;
+		};
+	})();
+
+	#deserialize(duties: DutyPrototype[] | null, type: DutyType) {
+		const iterate = (
+			validDuty: DutyPrototype[],
 			Duty: { new (proto: DutyPrototype): DutyPrototype },
 		): void => {
-			for (const props of validObj) {
-				const serialized = new Duty(props);
-				this.#data[serialized.uuid] = serialized as T;
+			for (const duty of validDuty) {
+				if (!this.has(duty.uuid)) continue;
+
+				const serialized = new Duty(duty);
+
+				this.#data[serialized.uuid] = serialized as V;
 			}
 		};
 
 		switch (type) {
 			case "task": {
-				if (!object) object = boilerplateTasks as DutyPrototype[];
-				iterate(object, Task);
+				if (!duties) duties = boilerplateTasks as DutyPrototype[];
+				iterate(duties, Task);
 				break;
 			}
 
 			case "note": {
-				if (!object) object = boilerplateNotes as DutyPrototype[];
-				iterate(object, Note);
+				if (!duties) duties = boilerplateNotes as DutyPrototype[];
+				iterate(duties, Note);
 				break;
 			}
 
 			case "project": {
-				if (!object) object = boilerplateProjects as DutyPrototype[];
-				iterate(object, Project);
+				if (!duties) duties = boilerplateProjects as DutyPrototype[];
+				iterate(duties, Project);
 				break;
 			}
 		}
