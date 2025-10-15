@@ -12,12 +12,22 @@ import ProjectsComponent from "./components/home-pages/projects-page.html";
 import TodoComponent from "./components/home-pages/tasks-page.html";
 import TrackerComponent from "./components/home-pages/tracker-page.html";
 
+<<<<<<< HEAD
 import writeProject from "./components/projects/index";
 import { writeTask } from "./components/tasks/index";
 import { EntitiesMap } from "./utils/entities";
 import { handleInsertion, handleItemSelection } from "./utils/event-handlers";
 import type { AppState } from "./utils/types";
 import { Page } from "./utils/types";
+=======
+import writeProjectToDOM from "./components/projects/index";
+import { writeTaskToDOM } from "./components/tasks/index";
+
+import { handleInsertion, handleClick } from "./event-handlers";
+
+import type { AppState, DutyPrototype, UUID } from "./utils";
+import { Note, Page, Project, Task } from "./utils";
+>>>>>>> 60fc6902ac9c22f127aff5d1c320e781794c28c5
 
 const State: AppState = {
 	tasks: new EntitiesMap("task"),
@@ -33,10 +43,15 @@ const State: AppState = {
 		selected: new Set(),
 	},
 
+<<<<<<< HEAD
 	defaultDutyPriority: "medium",
 
 	itemSelectionEvHandler: (e: MouseEvent) =>
 		handleItemSelection(e, "task", State.itemSelection),
+=======
+	globalClickEvHandler: (e: MouseEvent) =>
+		handleClick(e, "task", State.selection),
+>>>>>>> 60fc6902ac9c22f127aff5d1c320e781794c28c5
 
 	insertionEvHandler: (e: MouseEvent) => handleInsertion(e, "task"),
 };
@@ -111,15 +126,17 @@ export { State };
 					"button.add",
 				) as HTMLButtonElement;
 
-				document.body.removeEventListener(
-					"click",
-					State.itemSelectionEvHandler,
-				);
+				document.body.removeEventListener("click", State.globalClickEvHandler);
 
+<<<<<<< HEAD
 				State.itemSelectionEvHandler = (e: MouseEvent) =>
 					handleItemSelection(e, "task", State.itemSelection);
+=======
+				State.globalClickEvHandler = (e: MouseEvent) =>
+					handleClick(e, "task", State.selection);
+>>>>>>> 60fc6902ac9c22f127aff5d1c320e781794c28c5
 
-				document.body.addEventListener("click", State.itemSelectionEvHandler);
+				document.body.addEventListener("click", State.globalClickEvHandler);
 
 				State.insertionEvHandler = (e: MouseEvent) =>
 					handleInsertion(e, "task");
@@ -156,15 +173,17 @@ export { State };
 					"button.add",
 				) as HTMLButtonElement;
 
-				document.body.removeEventListener(
-					"click",
-					State.itemSelectionEvHandler,
-				);
+				document.body.removeEventListener("click", State.globalClickEvHandler);
 
+<<<<<<< HEAD
 				State.itemSelectionEvHandler = (e: MouseEvent) =>
 					handleItemSelection(e, "project", State.itemSelection);
+=======
+				State.globalClickEvHandler = (e: MouseEvent) =>
+					handleClick(e, "project", State.selection);
+>>>>>>> 60fc6902ac9c22f127aff5d1c320e781794c28c5
 
-				document.body.addEventListener("click", State.itemSelectionEvHandler);
+				document.body.addEventListener("click", State.globalClickEvHandler);
 
 				State.insertionEvHandler = (e: MouseEvent) =>
 					handleInsertion(e, "project");

@@ -34,7 +34,11 @@ export function handleInsertion(e: MouseEvent, type: DutyType) {
 
 		const instance = new d(newPrototype);
 
+<<<<<<< HEAD:src/utils/event-handlers.ts
 		State[`${type}s`].set(instance.uuid as UUID, instance as never);
+=======
+		State[`${type}s`].set(instance.uuid, instance as never);
+>>>>>>> 60fc6902ac9c22f127aff5d1c320e781794c28c5:src/event-handlers.ts
 
 		container.removeChild(form.parentElement as HTMLElement);
 
@@ -87,24 +91,31 @@ export function handleInsertion(e: MouseEvent, type: DutyType) {
 	});
 }
 
-export function handleItemSelection(
+export function handleClick(
 	e: MouseEvent,
 	type: DutyType,
 	selectionState: SelectionState,
 ) {
 	let target = e.target as HTMLElement;
+	let child: HTMLElement | null = null;
+	let parent: HTMLElement | null = null;
 	let targetUUID: UUID | null = null;
 
-	const targetIsLI: boolean = !!target.getAttribute("uuid");
-	const targetIsChildOfLI: boolean = !!target.matches(`div.${type}`);
-	const isTaskCheckbox = !!target.matches("div.task div.checkbox label");
+	const divIdContext = type === "task" ? "todo" : "projects";
 
+	const targetIsLI: boolean = target.hasAttribute("uuid");
 	if (targetIsLI) targetUUID = target.getAttribute("uuid") as UUID;
 
-	if (targetIsChildOfLI) {
-		const parent = target.parentElement as HTMLElement;
+	const targetIsChildOfLI: boolean = target.matches(`ul.container li *`);
+	const isTaskCheckbox = target.matches("div.task div.checkbox label");
+	if (targetIsChildOfLI && !isTaskCheckbox) {
+		parent = target.closest("ul.container li") as HTMLElement;
 		targetUUID = parent.getAttribute("uuid") as UUID;
+		child = target;
 		target = parent;
+
+		const targetIsButtonOption = child.matches("div.options button");
+		if (targetIsButtonOption) handleItemOptions();
 	}
 
 	if (isTaskCheckbox) {
@@ -120,110 +131,130 @@ export function handleItemSelection(
 		task.completed = completed;
 	}
 
-	const divIdContext = type === "task" ? "todo" : "projects";
+	handleItemSelection();
 
-	if (!targetUUID) {
-		const selectedElements = document.querySelectorAll<HTMLElement>(
-			`div#${divIdContext} ul.container li`,
-		);
+	return;
 
-		selectedElements.forEach((el) => {
-			el.removeAttribute("class");
-		});
-
-		selectionState.origin = null;
-		selectionState.selected.clear();
-
-		return;
-	}
-
-	if (selectionState.origin !== targetUUID) {
-		if (!e.ctrlKey && !e.shiftKey) {
-			selectionState.selected.forEach((uuid) => {
-				const previousSelected = document.querySelector(
-					`div#${divIdContext} ul.container li[uuid="${uuid}"]`,
-				);
-				previousSelected?.removeAttribute("class");
-			});
-			selectionState.selected.clear();
-
-			if (selectionState.origin) {
-				const previousOrigin = document.querySelector(
-					`div#${divIdContext} ul.container li.origin-selection`,
-				);
-				previousOrigin?.removeAttribute("class");
-			}
-
-			selectionState.origin = targetUUID;
-			selectionState.selected.add(targetUUID);
-
-			target.classList.add("selected");
-			target.classList.add("origin-selection");
-
-			return;
-		}
-
-		if (e.ctrlKey && !e.shiftKey) {
-			const previousOrigin = document.querySelector(
-				`div#${divIdContext} ul.container li[uuid="${selectionState.origin}"]`,
+	function handleItemSelection() {
+		if (!targetUUID) {
+			const selectedElements = document.querySelectorAll<HTMLElement>(
+				`div#${divIdContext} ul.container li`,
 			);
 
-			if (previousOrigin?.classList.contains("selected")) {
-				previousOrigin?.classList.remove("origin-selection");
-			} else {
-				previousOrigin?.removeAttribute("class");
-			}
+			selectedElements.forEach((el) => {
+				el.removeAttribute("class");
+			});
 
-			selectionState.origin = targetUUID;
-			target.classList.add("origin-selection");
-
-			if (selectionState.selected.has(targetUUID)) {
-				selectionState.selected.delete(targetUUID);
-
-				target.classList.remove("selected");
-
-				return;
-			}
-
-			selectionState.selected.add(targetUUID);
-
-			target.classList.add("selected");
+			selectionState.origin = null;
+			selectionState.selected.clear();
 
 			return;
 		}
-	}
 
-	if (selectionState.origin === targetUUID) {
-		if (!e.ctrlKey && !e.shiftKey) {
-			if (selectionState.selected.size !== 0) {
+		if (selectionState.origin !== targetUUID) {
+			if (!e.ctrlKey && !e.shiftKey) {
 				selectionState.selected.forEach((uuid) => {
 					const previousSelected = document.querySelector(
 						`div#${divIdContext} ul.container li[uuid="${uuid}"]`,
 					);
-					if (uuid !== targetUUID) previousSelected?.removeAttribute("class");
+					previousSelected?.removeAttribute("class");
 				});
 				selectionState.selected.clear();
-			}
 
-			target.classList.toggle("selected");
+				if (selectionState.origin) {
+					const previousOrigin = document.querySelector(
+						`div#${divIdContext} ul.container li.origin-selection`,
+					);
+					previousOrigin?.removeAttribute("class");
+				}
 
-			return;
-		}
+				selectionState.origin = targetUUID;
+				selectionState.selected.add(targetUUID);
 
-		if (e.ctrlKey && !e.shiftKey) {
-			if (selectionState.selected.has(targetUUID)) {
-				selectionState.selected.delete(targetUUID);
-
-				target.classList.remove("selected");
+				target.classList.add("selected");
+				target.classList.add("origin-selection");
 
 				return;
 			}
 
-			selectionState.selected.add(targetUUID);
+			if (e.ctrlKey && !e.shiftKey) {
+				const previousOrigin = document.querySelector(
+					`div#${divIdContext} ul.container li[uuid="${selectionState.origin}"]`,
+				);
 
-			target.classList.add("selected");
+				if (previousOrigin?.classList.contains("selected")) {
+					previousOrigin?.classList.remove("origin-selection");
+				} else {
+					previousOrigin?.removeAttribute("class");
+				}
 
-			return;
+				selectionState.origin = targetUUID;
+				target.classList.add("origin-selection");
+
+				if (selectionState.selected.has(targetUUID)) {
+					selectionState.selected.delete(targetUUID);
+
+					target.classList.remove("selected");
+
+					return;
+				}
+
+				selectionState.selected.add(targetUUID);
+
+				target.classList.add("selected");
+
+				return;
+			}
+		}
+
+		if (selectionState.origin === targetUUID) {
+			if (!e.ctrlKey && !e.shiftKey) {
+				if (selectionState.selected.size !== 0) {
+					selectionState.selected.forEach((uuid) => {
+						const previousSelected = document.querySelector(
+							`div#${divIdContext} ul.container li[uuid="${uuid}"]`,
+						);
+						if (uuid !== targetUUID) previousSelected?.removeAttribute("class");
+					});
+					selectionState.selected.clear();
+				}
+
+				target.classList.toggle("selected");
+
+				return;
+			}
+
+			if (e.ctrlKey && !e.shiftKey) {
+				if (selectionState.selected.has(targetUUID)) {
+					selectionState.selected.delete(targetUUID);
+
+					target.classList.remove("selected");
+
+					return;
+				}
+
+				selectionState.selected.add(targetUUID);
+
+				target.classList.add("selected");
+
+				return;
+			}
+		}
+	}
+
+	function handleItemOptions() {
+		const uuid = targetUUID as UUID;
+		const container = document.querySelector(
+			`div#${divIdContext} ul.container`,
+		) as HTMLUListElement;
+		switch ((child as HTMLButtonElement).getAttribute("class")) {
+			case "expand":
+				break;
+
+			case "delete":
+				State[`${type}s`].delete(uuid);
+				container.removeChild(parent as HTMLElement);
+				break;
 		}
 	}
 }
