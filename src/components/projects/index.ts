@@ -1,8 +1,9 @@
 //import "./projects.css"
 
-import { generateDOMWriteable, type Project } from "../../utils";
+import { generateDOMWriteable } from "../../utils/dom-manipulation";
+import type { Project } from "../../utils/entities";
 import ProjectComponent from "./projects.html";
 
-const writeProjectToDOM = generateDOMWriteable<Project>(ProjectComponent);
+const writeProject = generateDOMWriteable<Project>(ProjectComponent);
 
-export default writeProjectToDOM;
+export default writeProject;

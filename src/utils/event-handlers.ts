@@ -1,7 +1,7 @@
-import { writeNewTaskFormToDOM, writeTaskToDOM } from "./components/tasks";
-import { State } from "./main";
-import type { DutyPrototype, DutyType, SelectionState, UUID } from "./utils";
-import { Note, Project, Task } from "./utils";
+import { writeNewTaskForm, writeTask } from "../components/tasks";
+import { State } from "../main";
+import { Note, Project, Task } from "./entities";
+import type { DutyPrototype, DutyType, SelectionState, UUID } from "./types";
 
 export function handleInsertion(e: MouseEvent, type: DutyType) {
 	const addButton = e.currentTarget as HTMLElement;
@@ -23,19 +23,22 @@ export function handleInsertion(e: MouseEvent, type: DutyType) {
 		document.body.removeEventListener("keypress", handleKeyPressed);
 	}
 
-	function updateDuty(e: SubmitEvent) {
+	function updateDuty<D extends DutyPrototype>(
+		e: SubmitEvent,
+		d: { new (proto: DutyPrototype): D },
+	) {
 		e.preventDefault();
 		const newPrototype = (<unknown>(
 			Object.fromEntries(new FormData(form).entries())
 		)) as DutyPrototype;
 
-		const instance = new Task(newPrototype);
+		const instance = new d(newPrototype);
 
-		State.tasks.set(instance.uuid, instance);
+		State[`${type}s`].set(instance.uuid as UUID, instance as never);
 
 		container.removeChild(form.parentElement as HTMLElement);
 
-		writeTaskToDOM("insert", container, instance as Task);
+		writeTask("insert", container, instance as Task);
 
 		resetEventListeners();
 	}
@@ -59,11 +62,11 @@ export function handleInsertion(e: MouseEvent, type: DutyType) {
 				"div#todo ul.container",
 			) as HTMLElement;
 
-			writeNewTaskFormToDOM("insert", container);
+			writeNewTaskForm("insert", container);
 
 			form = document.querySelector("form#new-task") as HTMLFormElement;
 
-			form.addEventListener("submit", updateDuty);
+			form.addEventListener("submit", (e) => updateDuty(e, Task));
 
 			break;
 		}

@@ -7,39 +7,36 @@ import "./components/tasks/tasks.css";
 import "./components/projects/projects.css";
 import "./components/tracker/tracker.css";
 
-import boilerplateNotes from "../resources/boilerplate-notes.json";
-import boilerplateProjects from "../resources/boilerplate-projects.json";
-import boilerplateTasks from "../resources/boilerplate-tasks.json";
-
 import ConfigComponent from "./components/home-pages/config-page.html";
 import ProjectsComponent from "./components/home-pages/projects-page.html";
 import TodoComponent from "./components/home-pages/tasks-page.html";
 import TrackerComponent from "./components/home-pages/tracker-page.html";
 
-import writeProjectToDOM from "./components/projects/index";
-import { writeTaskToDOM } from "./components/tasks/index";
-
-import { handleInsertion, handleItemSelection } from "./event-handlers";
-
-import type { AppState, DutyPrototype, UUID } from "./utils";
-import { Note, Page, Project, Task } from "./utils";
+import writeProject from "./components/projects/index";
+import { writeTask } from "./components/tasks/index";
+import { EntitiesMap } from "./utils/entities";
+import { handleInsertion, handleItemSelection } from "./utils/event-handlers";
+import type { AppState } from "./utils/types";
+import { Page } from "./utils/types";
 
 const State: AppState = {
-	tasks: new Map(),
-	projects: new Map(),
-	notes: new Map(),
+	tasks: new EntitiesMap("task"),
+	projects: new EntitiesMap("project"),
+	notes: new EntitiesMap("note"),
 
 	page: Page.Tasks,
 
-	observer: null,
+	menuObserver: null,
 
-	selection: {
+	itemSelection: {
 		origin: null,
 		selected: new Set(),
 	},
 
+	defaultDutyPriority: "medium",
+
 	itemSelectionEvHandler: (e: MouseEvent) =>
-		handleItemSelection(e, "task", State.selection),
+		handleItemSelection(e, "task", State.itemSelection),
 
 	insertionEvHandler: (e: MouseEvent) => handleInsertion(e, "task"),
 };
@@ -69,52 +66,6 @@ export { State };
 		});
 	});
 
-	if (!localStorage.getItem("notes")) {
-		const notes: DutyPrototype[] = (<unknown>(
-			boilerplateNotes
-		)) as DutyPrototype[];
-		deserializeDuty(notes);
-		localStorage.setItem("notes", JSON.stringify(notes));
-	} else {
-		deserializeDuty(
-			JSON.parse(localStorage.getItem("notes") as string) as DutyPrototype[],
-		);
-	}
-
-	if (!localStorage.getItem("tasks")) {
-		const tasks: DutyPrototype[] = (<unknown>(
-			boilerplateTasks
-		)) as DutyPrototype[];
-		deserializeDuty(tasks);
-		localStorage.setItem("tasks", JSON.stringify(tasks));
-	} else {
-		deserializeDuty(
-			JSON.parse(localStorage.getItem("tasks") as string) as DutyPrototype[],
-		);
-	}
-
-	State.tasks.forEach((task) => {
-		if (task.childTasks.length === 0) return;
-
-		task.childTasks = task.childTasks.map((childTaskUUID) => {
-			const childTask = State.tasks.get(childTaskUUID as UUID);
-			(childTask as Task).parent = task;
-			return childTask;
-		}) as Task[];
-	});
-
-	if (!localStorage.getItem("projects")) {
-		const projects: DutyPrototype[] = (<unknown>(
-			boilerplateProjects
-		)) as DutyPrototype[];
-		deserializeDuty(projects);
-		localStorage.setItem("projects", JSON.stringify(projects));
-	} else {
-		deserializeDuty(
-			JSON.parse(localStorage.getItem("projects") as string) as DutyPrototype[],
-		);
-	}
-
 	switchPage(State.page);
 
 	function generateObserver(observedElement: HTMLElement) {
@@ -143,10 +94,10 @@ export { State };
 			document.querySelector<HTMLDivElement>("main.content");
 		if (previousContent) document.body.removeChild(previousContent);
 
-		if (State.observer) State.observer.disconnect();
+		if (State.menuObserver) State.menuObserver.disconnect();
 
-		State.selection.origin = null;
-		State.selection.selected.clear();
+		State.itemSelection.origin = null;
+		State.itemSelection.selected.clear();
 
 		const newContent = document.createElement("main");
 		newContent.setAttribute("class", "content");
@@ -166,7 +117,7 @@ export { State };
 				);
 
 				State.itemSelectionEvHandler = (e: MouseEvent) =>
-					handleItemSelection(e, "task", State.selection);
+					handleItemSelection(e, "task", State.itemSelection);
 
 				document.body.addEventListener("click", State.itemSelectionEvHandler);
 
@@ -177,12 +128,12 @@ export { State };
 					capture: true,
 				});
 
-				State.observer = generateObserver(
+				State.menuObserver = generateObserver(
 					document.querySelector("div.menu") as HTMLElement,
 				);
 
 				State.tasks.forEach((task) => {
-					writeTaskToDOM(
+					writeTask(
 						"append",
 						document.querySelector<HTMLDivElement>("div#todo ul.container"),
 						task,
@@ -211,7 +162,7 @@ export { State };
 				);
 
 				State.itemSelectionEvHandler = (e: MouseEvent) =>
-					handleItemSelection(e, "project", State.selection);
+					handleItemSelection(e, "project", State.itemSelection);
 
 				document.body.addEventListener("click", State.itemSelectionEvHandler);
 
@@ -222,12 +173,12 @@ export { State };
 					capture: true,
 				});
 
-				State.observer = generateObserver(
+				State.menuObserver = generateObserver(
 					document.querySelector("div.menu") as HTMLElement,
 				);
 
 				State.projects.forEach((project) => {
-					writeProjectToDOM(
+					writeProject(
 						"append",
 						document.querySelector<HTMLDivElement>("div#projects ul.container"),
 						project,
@@ -251,30 +202,6 @@ export { State };
 				State.page = Page.Configurations;
 
 				break;
-		}
-	}
-
-	function deserializeDuty(duties: DutyPrototype[]) {
-		for (const duty of duties) {
-			switch (duty.type) {
-				case "task": {
-					const serializedTask = new Task(duty);
-
-					State.tasks.set(serializedTask.uuid, serializedTask);
-					break;
-				}
-				case "project": {
-					const serializedProject = new Project(duty);
-
-					State.projects.set(serializedProject.uuid, serializedProject);
-					break;
-				}
-				case "note": {
-					const serializedNote = new Note(duty);
-
-					State.notes.set(serializedNote.uuid, serializedNote);
-				}
-			}
 		}
 	}
 })();
