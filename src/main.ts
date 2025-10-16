@@ -15,14 +15,14 @@ import TrackerComponent from "./components/home-pages/tracker-page.html";
 import writeProject from "./components/projects/index";
 import { writeTask } from "./components/tasks/index";
 import { EntitiesMap } from "./utils/entities";
-import { handleInsertion, handleClick } from "./utils/event-handlers";
+import { handleClick, handleInsertion } from "./utils/event-handlers";
 import type { AppState } from "./utils/types";
 import { Page } from "./utils/types";
 
 const State: AppState = {
+	notes: new EntitiesMap("note"),
 	tasks: new EntitiesMap("task"),
 	projects: new EntitiesMap("project"),
-	notes: new EntitiesMap("note"),
 
 	page: Page.Tasks,
 
@@ -40,6 +40,9 @@ const State: AppState = {
 
 	insertionEvHandler: (e: MouseEvent) => handleInsertion(e, "task"),
 };
+
+State.tasks.updateRelatedInstances(State);
+State.projects.updateRelatedInstances(State);
 
 export { State };
 

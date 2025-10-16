@@ -25,14 +25,14 @@ export function handleInsertion(e: MouseEvent, type: DutyType) {
 
 	function updateDuty<D extends DutyPrototype>(
 		e: SubmitEvent,
-		d: { new (proto: DutyPrototype): D },
+		Duty: { new (proto: DutyPrototype): D },
 	) {
 		e.preventDefault();
 		const newPrototype = (<unknown>(
 			Object.fromEntries(new FormData(form).entries())
 		)) as DutyPrototype;
 
-		const instance = new d(newPrototype);
+		const instance = new Duty(newPrototype);
 
 		State[`${type}s`].set(instance.uuid, instance as never);
 
