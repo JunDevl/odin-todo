@@ -124,6 +124,7 @@ export class EntitiesMap<V extends DutyPrototype> extends Map<UUID, V> {
 			tasks: UUID[];
 		};
 	} = {};
+
 	#type: DutyType;
 
 	constructor(type: DutyType) {
@@ -131,8 +132,8 @@ export class EntitiesMap<V extends DutyPrototype> extends Map<UUID, V> {
 
 		super();
 
-		this.#deserialize(stored, type);
 		this.#type = type;
+		this.#deserialize(stored);
 	}
 
 	readonly updateRelatedInstances = (() => {
@@ -178,7 +179,7 @@ export class EntitiesMap<V extends DutyPrototype> extends Map<UUID, V> {
 		};
 	})();
 
-	#deserialize(duties: DutyPrototype[] | null, type: DutyType) {
+	#deserialize(duties: DutyPrototype[] | null) {
 		const iterate = (
 			validDuty: DutyPrototype[],
 			Duty: { new (proto: DutyPrototype): DutyPrototype },
@@ -202,7 +203,7 @@ export class EntitiesMap<V extends DutyPrototype> extends Map<UUID, V> {
 			}
 		};
 
-		switch (type) {
+		switch (this.#type) {
 			case "task": {
 				if (!duties) duties = boilerplateTasks as DutyPrototype[];
 				iterate(duties, Task);
@@ -262,6 +263,8 @@ export class EntitiesMap<V extends DutyPrototype> extends Map<UUID, V> {
 
 	clear(): void {
 		super.clear();
-		localStorage.clear();
+		Object.keys(this).forEach((key) => {
+			localStorage.removeItem(key);
+		});
 	}
 }
