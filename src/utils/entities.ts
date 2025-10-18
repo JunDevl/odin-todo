@@ -127,13 +127,26 @@ export class EntitiesMap<V extends DutyPrototype> extends Map<UUID, V> {
 
 	#type: DutyType;
 
-	constructor(type: DutyType) {
-		const stored = JSON.parse(localStorage.getItem(type) as string);
+	static #stored: Record<string, DutyPrototype[]> = (() => {
+		const result: Record<string, DutyPrototype[]> = {};
+		if (localStorage.length > 0) {
+			Object.values(localStorage).forEach((storedObj) => {
+				const parsed = JSON.parse(storedObj);
 
+				const wasTypeDefined = !!result[`${parsed.type}s`];
+				if (!wasTypeDefined) result[`${parsed.type}s`] = [];
+				result[`${parsed.type}s`].push(parsed);
+			});
+		}
+		return result ? result : {};
+	})();
+
+	constructor(type: DutyType) {
 		super();
 
 		this.#type = type;
-		this.#deserialize(stored);
+
+		this.#deserialize();
 	}
 
 	readonly updateRelatedInstances = (() => {
@@ -147,12 +160,13 @@ export class EntitiesMap<V extends DutyPrototype> extends Map<UUID, V> {
 			called = true;
 
 			Object.entries(this.#mappedChildRelationship).forEach((parent) => {
-				if (parent instanceof Note)
-					throw new Error("A note can't have child notes/tasks.");
 				const [uuid, children] = parent;
 				const parentInstance = currentState[`${this.#type}s`].get(
 					uuid as UUID,
 				) as V;
+
+				if (parentInstance instanceof Note)
+					throw new Error("A note can't have child notes/tasks.");
 
 				if (children.notes.length !== 0) {
 					parentInstance.notes = [];
@@ -179,7 +193,7 @@ export class EntitiesMap<V extends DutyPrototype> extends Map<UUID, V> {
 		};
 	})();
 
-	#deserialize(duties: DutyPrototype[] | null) {
+	#deserialize() {
 		const iterate = (
 			validDuty: DutyPrototype[],
 			Duty: { new (proto: DutyPrototype): DutyPrototype },
@@ -203,6 +217,9 @@ export class EntitiesMap<V extends DutyPrototype> extends Map<UUID, V> {
 			}
 		};
 
+		let duties: DutyPrototype[] | null =
+			localStorage.length > 0 ? EntitiesMap.#stored[`${this.#type}s`] : null;
+
 		switch (this.#type) {
 			case "task": {
 				if (!duties) duties = boilerplateTasks as DutyPrototype[];
@@ -225,8 +242,6 @@ export class EntitiesMap<V extends DutyPrototype> extends Map<UUID, V> {
 	}
 
 	set(key: UUID, value: V): this {
-		super.set(key, value);
-
 		const makeStorageable = () => {
 			const storageable: Record<string, any> = {};
 
@@ -248,6 +263,7 @@ export class EntitiesMap<V extends DutyPrototype> extends Map<UUID, V> {
 		};
 
 		localStorage.setItem(key, makeStorageable());
+		super.set(key, value);
 
 		return this;
 	}
@@ -256,6 +272,52 @@ export class EntitiesMap<V extends DutyPrototype> extends Map<UUID, V> {
 		if (!this.has(key)) return false;
 
 		localStorage.removeItem(key);
+
+		const thisInstance = this.get(key);
+
+		if (
+			Array.isArray(thisInstance?.childTasks) &&
+			thisInstance.childTasks.length > 0
+		)
+			thisInstance.childTasks.forEach((childTask) => {
+				(childTask as Task).parent = null;
+			});
+
+		if (Array.isArray(thisInstance?.notes) && thisInstance.notes.length > 0)
+			thisInstance.notes.forEach((note) => {
+				(note as Note).parent = null;
+			});
+
+		if (thisInstance?.parent && thisInstance instanceof Note) {
+			const notesOfParent = (thisInstance.parent as V).notes as Note[];
+			notesOfParent.splice(
+				notesOfParent.findIndex(
+					(note) => (note as Note).uuid === key,
+				) as number,
+				1,
+			);
+
+			const parentNoteMap =
+				this.#mappedChildRelationship[(thisInstance.parent as V).uuid].notes;
+
+			parentNoteMap.splice(parentNoteMap.indexOf(key));
+		}
+
+		if (thisInstance?.parent && thisInstance instanceof Task) {
+			const tasksOfParent = (thisInstance.parent as V).childTasks as Task[];
+			tasksOfParent.splice(
+				tasksOfParent.findIndex(
+					(task) => (task as Task).uuid === key,
+				) as number,
+				1,
+			);
+
+			const parentTaskMap =
+				this.#mappedChildRelationship[(thisInstance.parent as V).uuid].tasks;
+
+			parentTaskMap.splice(parentTaskMap.indexOf(key));
+		}
+
 		super.delete(key);
 
 		return true;
