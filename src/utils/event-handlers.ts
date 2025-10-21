@@ -1,4 +1,6 @@
+import writeFullPageProjectToDOM from "../components/projects/full-page";
 import { writeNewTaskForm, writeTask } from "../components/tasks";
+import writeFullPageTaskToDOM from "../components/tasks/full-page";
 import { State } from "../main";
 import { Note, Project, Task } from "./entities";
 import type { DutyPrototype, DutyType, SelectionState, UUID } from "./types";
@@ -51,7 +53,7 @@ export function handleInsertion(e: MouseEvent, type: DutyType) {
 		}
 	}
 
-	function handleButtonClicked(e: MouseEvent) {
+	function handleButtonClicked() {
 		form.dispatchEvent(new Event("submit"));
 		resetEventListeners();
 	}
@@ -245,6 +247,19 @@ export function handleClick(
 		) as HTMLUListElement;
 		switch ((child as HTMLButtonElement).getAttribute("class")) {
 			case "expand":
+				if (type === "task")
+					writeFullPageTaskToDOM(
+						"override",
+						document.querySelector("main.content"),
+						State.tasks.get(uuid),
+					);
+
+				if (type === "project")
+					writeFullPageProjectToDOM(
+						"override",
+						document.querySelector("main.content"),
+						State.projects.get(uuid),
+					);
 				break;
 
 			case "delete":

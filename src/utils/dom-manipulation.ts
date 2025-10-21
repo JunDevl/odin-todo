@@ -1,7 +1,7 @@
 import { intlFormat } from "date-fns";
 import type { Project, Task } from "./entities";
 
-type Operation = "insert" | "append";
+type Operation = "insert" | "append" | "override";
 
 type DOMWriter<T> = (
 	operation: Operation,
@@ -74,6 +74,11 @@ export function generateDOMWriteable<T extends Task | Project>(
 
 		if (operation === "insert") {
 			targetParent.insertAdjacentHTML("afterbegin", sanitizeHTML());
+			return;
+		}
+
+		if (operation === "override") {
+			targetParent.innerHTML = sanitizeHTML();
 			return;
 		}
 
